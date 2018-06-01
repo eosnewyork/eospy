@@ -29,8 +29,8 @@ def validate_chain():
     parser.add_argument('--api-version', help='version of the api to connect to', type=str, default='v1', action='store', dest='api_version')
     parser.add_argument('--url',help='url endpoint for the chain', type=str, action='store', required=True, dest='url')
     parser.add_argument('--truncate', help='Used for testing only. Will only look at the <n> number of accounts', type=int, default=0, action='store', dest='truncate_num')
-    parser.add_argument('--snapshot', help='snapshot file to checkout', type=str, action='store', required=True, dest='snapshot')
-    parser.add_argument('--snapshot-hash', help='expected hash of the snapshot', type=str, action='store', required=True, dest='snapshot_hash')
+    parser.add_argument('--snapshot', help='snapshot file to checkout', type=str, action='store', dest='snapshot')
+    parser.add_argument('--snapshot-hash', help='expected hash of the snapshot', type=str, action='store', dest='snapshot_hash')
     parser.add_argument('--check-accounts', help='Whether to check the snapshot accounts',  action='store_true', dest='check_accts')
     parser.add_argument('--eosio-code', help='expected hash of the eosio system contract', type=str, action='store', dest='eosio_code')
     parser.add_argument('--token-code', help='expected hash of the eosio.token contract', type=str, action='store', dest='token_code')
@@ -54,13 +54,6 @@ def validate_chain():
             for chunk in iter(lambda: f.read(4096), b"") :
                 hash_sha256.update(chunk)
         return hash_sha256.hexdigest()
-    
-    hash = sha256sum(args.snapshot)
-    if hash == args.snapshot_hash :
-        print('Snapshot matches:')
-    else :
-        print('HELP!!! Snapshots DO NOT MATCH:')
-    print('{0} <--> {1}'.format(hash, args.snapshot_hash))
 
     def check_code(user, supplied_hash) :
         ''' '''
@@ -74,6 +67,17 @@ def validate_chain():
             print('{0} <--> {1}'.format(supplied_hash, code_hash))
         else :
             print('WARNING --- not checking {0} code matches'.format(user))
+            
+    # check snapshot
+    if args.snapshot and args.snapshot_hash :
+        hash = sha256sum(args.snapshot)
+        if hash == args.snapshot_hash :
+            print('Snapshot matches:')
+        else :
+            print('HELP!!! Snapshots DO NOT MATCH:')
+        print('{0} <--> {1}'.format(hash, args.snapshot_hash))
+    else :
+        print('WARNING --- not checking snapshot')
     
     # check that the system user's code matches your expectations
     check_code('eosio', args.eosio_code)
@@ -139,7 +143,7 @@ def validate_chain():
                         print('HELP!!! account {0} has invalid balance'.format(acct_name))
                         print('{0} != {1}'.format(total, float(total_balance)))
                         exit(1)
-                    print('SUCCESS!!! account: {0} appears vaild with {1} EOS'.format(acct_name, balance))
+                    print('SUCCESS!!! account: {0} appears vaild with {1} EOS, no contract set, and not privileged'.format(acct_name, balance))
                 else :
                     print('HELP!!! account name did not match for some reason')
                     print('This is a nightmare how did this happen?')

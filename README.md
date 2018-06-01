@@ -21,7 +21,7 @@ validate_chain --url http://localhost:8888 \
                --snapshot ~/git/eosnewyork/snapshots/348/0/snapshot.csv \
                --snapshot-hash 08526b5373761badde60423ccb1d6d12ab920268f9c9a2f3b77250ff93d7f6e1 \
                --eosio-code 21c6343a1c7cda9b14e34d46764b41dbe6b0377568af9c44517dc7980d6a774c \
-               --token-code 3e0cf4172ab025f9fff5f1db11ee8a34d44779492e1d668ae1dc2d129e865348
+               --token-code 3e0cf4172ab025f9fff5f1db11ee8a34d44779492e1d668ae1dc2d129e865348 \
                --msig-code 5cf017909547b2d69cee5f01c53fe90f3ab193c57108f81a17f0716a4c83f9c0 \
                --unregd-code 6c48d8a571e74e6d0cd1e42aac154d35392b6766b6390351ef6a3632be584fa0 \
                --currency-check "10000000000.0000 EOS" \
