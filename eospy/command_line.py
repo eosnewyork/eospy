@@ -9,6 +9,7 @@ def vote_for_bps():
     parser.add_argument('--url', type=str, action='store', required=True, dest='url')
     parser.add_argument('--wallet-url', type=str, action='store', required=True, dest='wallet_url')
     parser.add_argument('--wallet-name', type=str, default='default', action='store', dest='wallet_name')
+    raise NotImplementedError
     args = parser.parse_args()
     # connect to http endpoint
     ce = Cleos(url=args.url, wallet_url=args.wallet_url, version=args.api_version)
@@ -25,18 +26,18 @@ def vote_for_bps():
 
 def validate_chain():
     parser = argparse.ArgumentParser(description='validate the chain')
-    parser.add_argument('--api-version', type=str, default='v1', action='store', dest='api_version')
-    parser.add_argument('--url', type=str, action='store', required=True, dest='url')
-    parser.add_argument('--truncate', type=int, default=0, action='store', dest='truncate_num')
-    parser.add_argument('--snapshot', type=str, action='store', required=True, dest='snapshot')
-    parser.add_argument('--snapshot-hash', type=str, action='store', required=True, dest='snapshot_hash')
-    parser.add_argument('--check-accounts', action='store_true', dest='check_accts')
-    parser.add_argument('--eosio-code', type=str, action='store', dest='eosio_code')
-    parser.add_argument('--token-code', type=str, action='store', dest='token_code')
-    parser.add_argument('--msig-code', type=str, action='store', dest='msig_code')
-    parser.add_argument('--unregd-code', type=str, action='store', dest='unregd_code')
-    parser.add_argument('--currency-check', type=str, action='store', dest='currency_chk')
-    parser.add_argument('--check-sys-accounts', action='store_true', dest='check_sys_accts')
+    parser.add_argument('--api-version', help='version of the api to connect to', type=str, default='v1', action='store', dest='api_version')
+    parser.add_argument('--url',help='url endpoint for the chain', type=str, action='store', required=True, dest='url')
+    parser.add_argument('--truncate', help='Used for testing only. Will only look at the <n> number of accounts', type=int, default=0, action='store', dest='truncate_num')
+    parser.add_argument('--snapshot', help='snapshot file to checkout' type=str, action='store', required=True, dest='snapshot')
+    parser.add_argument('--snapshot-hash', help='expected hash of the snapshot' type=str, action='store', required=True, dest='snapshot_hash')
+    parser.add_argument('--check-accounts', help='Whether to check the snapshot accounts',  action='store_true', dest='check_accts')
+    parser.add_argument('--eosio-code', help='expected hash of the eosio system contract', type=str, action='store', dest='eosio_code')
+    parser.add_argument('--token-code', help='expected hash of the eosio.token contract', type=str, action='store', dest='token_code')
+    parser.add_argument('--msig-code', help='expected hash of the eosio.msig contract', type=str, action='store', dest='msig_code')
+    parser.add_argument('--unregd-code', help='expected hash of the eosio.unregd contract', type=str, action='store', dest='unregd_code')
+    parser.add_argument('--currency-check',help='expected hash of the eosio system contract', type=str, action='store', dest='currency_chk')
+    parser.add_argument('--check-sys-accounts', help='check the system accounts are all correct', action='store_true', dest='check_sys_accts')
     args = parser.parse_args()
 
     # connect to http endpoint

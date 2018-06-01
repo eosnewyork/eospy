@@ -5,6 +5,12 @@ This library is very much a work in progress however it has enough implemented t
 To install run
 
 ```
+# create virtual environment
+mkdir ~/envs/eospy
+virtualenv ~/envs/eospy
+# activate the environment
+source ~/envs/eospy/bin/activate
+# install the library
 pip install git+https://github.com/eosnewyork/eospy
 ```
 
