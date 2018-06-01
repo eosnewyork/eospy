@@ -17,7 +17,7 @@ pip install git+https://github.com/eosnewyork/eospy
 To validate a chain run something like the following:
 
 ```
-validate_chain --url http://35.190.58.19:80 \
+validate_chain --url http://localhost:8888 \
                --snapshot ~/git/eosnewyork/snapshots/348/0/snapshot.csv \
                --snapshot-hash 08526b5373761badde60423ccb1d6d12ab920268f9c9a2f3b77250ff93d7f6e1 \
                --eosio-code 21c6343a1c7cda9b14e34d46764b41dbe6b0377568af9c44517dc7980d6a774c \
