@@ -92,7 +92,7 @@ def validate_chain():
             print('HELP!!! discrepency in initial token create')
         print('{0} <--> {1}'.format(args.currency_chk, currency['EOS']['max_supply']))
     else :
-        print('WARNING --- not checking initial token creation'.format(user))
+        print('WARNING --- not checking initial token creation')
        
     # check if snapshot is valid
     if args.check_accts :
