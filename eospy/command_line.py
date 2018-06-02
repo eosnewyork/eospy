@@ -112,7 +112,7 @@ def validate_chain():
             output.append('ERROR!!! It appears {0} this account was not added.'.format(acct_name))
             account_errors += 1
         # redundant check
-        if account_errors > 0 and acct_name == acct['account_name'] :         
+        if account_errors == 0 and acct_name == acct['account_name'] :         
             # check keys
             for perm in acct['permissions'] :
                 for keys in perm['required_auth']['keys'] :
@@ -146,8 +146,7 @@ def validate_chain():
                 total_balance = 0
                 output.append(str(ex))
             if not isclose(total_balance, float(acct_balance)):
-                output.append('ERROR!!! account {0} has invalid balance'.format(acct_name))
-                output.append('{:10.4f} != {:10.4f}'.format(float(acct_balance), total_balance))
+                output.append('ERROR!!! account {0} has invalid balance: {:10.4f} != {:10.4f}'.format(acct_name, float(acct_balance), total_balance)))
                 account_errors += 1
 
             if account_errors == 0 :
