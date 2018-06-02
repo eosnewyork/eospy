@@ -2,7 +2,6 @@ import argparse
 from cleos import Cleos
 import pprint
 
-
 def vote_for_bps():
     parser = argparse.ArgumentParser(description='vote for block producers')
     parser.add_argument('--api-version', type=str, default='v1', action='store', dest='api_version')
@@ -38,9 +37,14 @@ def validate_chain():
     parser.add_argument('--msig-code', help='expected hash of the eosio.msig contract', type=str, action='store', dest='msig_code')
     parser.add_argument('--unregd-code', help='expected hash of the eosio.unregd contract', type=str, action='store', dest='unregd_code')
     parser.add_argument('--currency-check',help='expected hash of the eosio system contract', type=str, action='store', dest='currency_chk')
+    parser.add_argument('--ram-fee', help='Guesstimate on cost of ram over time', type=float, default=0, action='store', dest='ram_fee')
+    parser.add_argument('--num-threads', help='number of threads to run', type=int, default=16, action='store', dest='num_thds')
     parser.add_argument('--check-sys-accounts', help='check the system accounts are all correct', action='store_true', dest='check_sys_accts')
     args = parser.parse_args()
-
+    # imports
+    from threading import Thread
+    #from multiproccessing.pool import ThreadPool
+    
     # connect to http endpoint
     ce = Cleos(url=args.url)
     # get chain infomation
@@ -48,6 +52,9 @@ def validate_chain():
     info = ce.get_info()
     pprint.pprint(info)
 
+    ########################
+    # functions
+    ########################
     try:
         # if python 3
         from math import isclose
@@ -55,7 +62,7 @@ def validate_chain():
         # running in python 2
         def isclose(a, b, rel_tol=1e-09, abs_tol=0.0) :
             return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
-    
+
     def sha256sum(fname) :
         import hashlib
         hash_sha256 = hashlib.sha256()
@@ -63,7 +70,7 @@ def validate_chain():
             for chunk in iter(lambda: f.read(4096), b"") :
                 hash_sha256.update(chunk)
         return hash_sha256.hexdigest()
-
+    
     def check_code(user, supplied_hash) :
         ''' '''
         if supplied_hash :
@@ -76,7 +83,85 @@ def validate_chain():
             print('{0} <--> {1}'.format(supplied_hash, code_hash))
         else :
             print('WARNING --- not checking {0} code matches'.format(user))
-            
+
+    def check_acct(eth_key, acct_name, acct_key, acct_balance) :
+        account_errors = 0
+        
+        # parse row
+        #acct_name = row[1]
+        #acct_key = row[2]
+        #acct_balance = row[3]
+
+        try:
+            acct = ce.get_account(acct_name)
+        except :
+            print('HELP!!! It appears {0} this account was not added.'.format(acct_name))
+            if not args.ignore_errors :
+                exit(1)
+            account_errors += 1
+        # redundant check
+        if acct or acct_name == acct['account_name'] :         
+            # check keys
+            for perm in acct['permissions'] :
+                for keys in perm['required_auth']['keys'] :
+                    if not acct_key == keys['key']:
+                        print('HELP!!! {0} has mismatched keys expected {0} and got {1}'.format(acct_key, key))
+                        if not args.ignore_errors :
+                            exit(1)
+                        account_errors += 1
+            # check last code update
+            if u'1970-01-01T00:00:00.000' != acct['last_code_update'] :
+                print('HELP!!! this {0}\'s code has been updated'.format(acct_name))
+                if not args.ignore_errors :
+                    exit(1)
+                account_errors += 1
+            # check if account is privileged
+            if acct['privileged'] :
+                print('HELP!!! this {0} has been set to privileged'.format(acct_name))
+                if not args.ignore_errors :
+                    exit(1)
+                account_errors += 1
+            # check account balance is correct
+            balance = ce.get_currency_balance(acct_name, 'eosio.token', 'EOS')
+            if len(balance) != 1 :
+                print('HELP!!! account {0} has invalid number of balances'.format(acct_name))
+                if not args.ignore_errors :
+                    exit(1)
+                account_errors += 1
+            try :
+                #pprint.pprint(acct['total_resources'])
+                bal = float(balance[0].strip(' EOS'))
+                cpu = float(acct['total_resources']['cpu_weight'].strip(' EOS'))
+                net = float(acct['total_resources']['net_weight'].strip(' EOS'))
+                # since ram is free
+                total_balance = cpu + net + bal + args.ram_fee
+                #print('cpu:{:10.4f},net:{:10.4f},bal:{:10.4f},total_balance:{:10.4f},expected_balance:{}'.format(cpu, net, bal, total_balance, acct_balance))
+            except Exception as ex:
+                total_balance = 0
+                print(ex)
+            if not isclose(total_balance, float(acct_balance)):
+                print('HELP!!! account {0} has invalid balance'.format(acct_name))
+                print('{:10.4f} != {:10.4f}'.format(float(acct_balance), total_balance))
+                if not args.ignore_errors :
+                    exit(1)
+                account_errors += 1
+
+            if account_errors == 0 :
+                print('SUCCESS!!! account: {0} appears vaild with {1} EOS, no contract set, and not privileged'.format(acct_name, acct_balance))
+            else :
+                print('This account had {0} failure(s)'.format(account_errors))
+        else :
+            print('HELP!!! account name did not match for some reason')
+            print('This is a nightmare how did this happen?')
+            print('{0} != {1}'.format(acct_name, acct['account_name']))
+            if args.ignore_errors :
+                exit(1)
+        return account_errors
+
+    ########################
+    # checks
+    ########################
+    
     # check snapshot
     if args.snapshot and args.snapshot_hash :
         hash = sha256sum(args.snapshot)
@@ -109,86 +194,38 @@ def validate_chain():
        
     # check if snapshot is valid
     if args.check_accts :
+        num_thds = args.num_thds
+        if args.truncate_num < num_thds :
+            num_thds = args.truncate_num
         total_account_errors = 0
         # load up the csv file and check accounts
         with open(args.snapshot) as f :
             import csv
             cnt = 0
-            snap = csv.reader(f, delimiter=',')
-            for row in snap :
-                account_errors = 0
+            snap = list(csv.reader(f, delimiter=',') )
+            print('Checking {0} accounts'.format(len(snap)))
+            #for row in range(len(snap)-num_thds+1) :
+            while cnt < len(snap) :                 
                 if args.truncate_num and cnt >= args.truncate_num :
                     print('WARNING!!! only checked {0} accounts'.format(cnt))
                     break
-                # parse row
-                acct_name = row[1]
-                acct_key = row[2]
-                acct_balance = row[3]
-                try:
-                    acct = ce.get_account(acct_name)
-                except :
-                    print('HELP!!! It appears {0} this account was not added.'.format(acct_name))
-                    if not args.ignore_errors :
-                        exit(1)
-                    account_errors = 0
-                # redundant check
-                if acct_name == acct['account_name'] :
-                    # check keys
-                    for perm in acct['permissions'] :
-                        for keys in perm['required_auth']['keys'] :
-                            if not acct_key == keys['key']:
-                                print('HELP!!! {0} has mismatched keys expected {0} and got {1}'.format(acct_key, key))
-                                if not args.ignore_errors :
-                                    exit(1)
-                                account_errors += 1
-                    # check last code update
-                    if u'1970-01-01T00:00:00.000' != acct['last_code_update'] :
-                        print('HELP!!! this {0}\'s code has been updated'.format(acct_name))
-                        if not args.ignore_errors :
-                            exit(1)
-                        account_errors += 1
-                    # check if account is privileged
-                    if acct['privileged'] :
-                        print('HELP!!! this {0} has been set to privileged'.format(acct_name))
-                        if not args.ignore_errors :
-                            exit(1)
-                        account_errors += 1
-                    # check account balance is correct
-                    balance = ce.get_currency_balance(acct_name, 'eosio.token', 'EOS')
-                    if len(balance) != 1 :
-                        print('HELP!!! account {0} has invalid number of balances'.format(acct_name))
-                        if not args.ignore_errors :
-                            exit(1)
-                        account_errors += 1
-                    try :
-                        #pprint.pprint(acct['total_resources'])
-                        bal = float(balance[0].strip(' EOS'))
-                        cpu = float(acct['total_resources']['cpu_weight'].strip(' EOS'))
-                        net = float(acct['total_resources']['net_weight'].strip(' EOS'))
-                        # add plus one for ram
-                        total_balance = cpu + net + bal + float(0.1)
-                        #print('{:10.4f} {:10.4f} {:10.4f} {:10.4f} {}'.format(cpu, net, bal, total_balance, acct_balance))
-                    except Exception as ex:
-                        total_balance = 0
-                        print(ex)
-                    if not isclose(total_balance, float(acct_balance)):
-                        print('HELP!!! account {0} has invalid balance'.format(acct_name))
-                        print('{:10.4f} != {:10.4f}'.format(float(acct_balance), total_balance))
-                        if not args.ignore_errors :
-                            exit(1)
-                        account_errors += 1
-                    if account_errors == 0 :
-                        print('SUCCESS!!! account: {0} appears vaild with {1} EOS, no contract set, and not privileged'.format(acct_name, acct_balance))
-                    else :
-                        print('This account had {0} failure(s)'.format(account_errors))
-                        total_account_errors += account_errors
-                else :
-                    print('HELP!!! account name did not match for some reason')
-                    print('This is a nightmare how did this happen?')
-                    print('{0} != {1}'.format(acct_name, acct['account_name']))
-                    exit(1)
-                # increment count
-                cnt += 1
-        print('Total accounts: {0} with {1} errors'.format(cnt,total_account_errors))
-
+                threads = []
+                cnt_thds=0
+                # get list of accounts
+                proc_list = snap[cnt:cnt+num_thds]
+                while cnt_thds < num_thds :
+                    t = Thread(target=check_acct, args=(proc_list[cnt_thds]) )
+                    t.start()
+                    threads.append(t)
+                    cnt_thds += 1
+                for thd in threads :
+                    thd.join()
+                #errors = check_acct(row, args.ram_fee, args.ignore_errors)
+                
+            
+                # increment count/errors
+                #total_account_errors += errors
+                cnt += num_thds
+        #print('Total accounts: {0} with {1} errors'.format(cnt,total_account_errors))
+        print('Total accounts: {0}'.format(cnt))
     
