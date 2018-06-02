@@ -112,7 +112,7 @@ def validate_chain():
             output.append('ERROR!!! It appears {0} this account was not added.'.format(acct_name))
             account_errors += 1
         # redundant check
-        if acct_name == acct['account_name'] :         
+        if account_errors > 0 and acct_name == acct['account_name'] :         
             # check keys
             for perm in acct['permissions'] :
                 for keys in perm['required_auth']['keys'] :
