@@ -195,7 +195,8 @@ def validate_chain():
     # check if snapshot is valid
     if args.check_accts :
         num_thds = args.num_thds
-        if args.truncate_num < num_thds :
+        if args.truncate_num and args.truncate_num < num_thds :
+            print(args.truncate_num)
             num_thds = args.truncate_num
         total_account_errors = 0
         # load up the csv file and check accounts
@@ -205,7 +206,7 @@ def validate_chain():
             snap = list(csv.reader(f, delimiter=',') )
             print('Checking {0} accounts'.format(len(snap)))
             #for row in range(len(snap)-num_thds+1) :
-            while cnt < len(snap) :                 
+            while cnt < len(snap) :
                 if args.truncate_num and cnt >= args.truncate_num :
                     print('WARNING!!! only checked {0} accounts'.format(cnt))
                     break
