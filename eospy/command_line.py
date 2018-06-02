@@ -82,11 +82,11 @@ def validate_chain():
         if supplied_hash :
             code = ce.get_code(user)
             code_hash = code['code_hash']
+            code_diff = '{0} <--> {1}'.format(supplied_hash, code_hash)
             if supplied_hash == code_hash:
-                append_output('SUCCESS!!! {0} code hash MATCHES:\n'.format(user))
+                append_output('SUCCESS!!! {0} code hash MATCHES: {1}\n'.format(user, code_diff))
             else :
-                append_output('ERROR!!! {0} code hash DO NOT MATCH:\n'.format(user))
-            append_output('{0} <--> {1}\n'.format(supplied_hash, code_hash))
+                append_output('ERROR!!! {0} code hash DO NOT MATCH: {1}\n'.format(user, code_diff))
         else :
             append_output('WARNING --- not checking {0} code matches\n'.format(user))
 
@@ -98,7 +98,7 @@ def validate_chain():
             try: 
                 line = write_buffer.pop()
                 while line :
-                    wb.write(line)
+                    wb.write(str(line))
                     line = write_buffer.pop()
             except IndexError:
                 pass
@@ -184,12 +184,12 @@ def validate_chain():
     # check the token create was valid
     if args.currency_chk :
         currency = ce.get_currency('eosio.token', 'EOS')
+        curr_string = '{0} <--> {1}'.format(args.currency_chk, currency['EOS']['max_supply'])
         #pappend_output.pappend_output(currency)
         if args.currency_chk == currency['EOS']['max_supply'] :
-            append_output('Max EOS supply matches:\n')
+            append_output('Max EOS supply matches: {0}\n'.format(curr_string))
         else :
-            append_output('ERROR!!! discrepency in initial token create\n')
-        append_output('{0} <--> {1}\n'.format(args.currency_chk, currency['EOS']['max_supply']))
+            append_output('ERROR!!! discrepency in initial token create: {0}\n'.format(curr_string))
     else :
         append_output('WARNING --- not checking initial token creation\n')
 
