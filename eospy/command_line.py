@@ -1,3 +1,4 @@
+ls
 import argparse
 from cleos import Cleos
 import pprint
@@ -128,13 +129,10 @@ def validate_chain():
                 output.append('ERROR!!! this {0} has been set to privileged'.format(acct_name))
                 account_errors += 1
             # check account balance is correct
-            if float(acct_balance) == 1.0 :
-                balance = [acct_balance]
-            else :
-                balance = ce.get_currency_balance(acct_name, 'eosio.token', 'EOS')
-                if len(balance) != 1 :
-                    output.append('ERROR!!! account {0} has invalid number of balances: {1}'.format(acct_name,len(balance)) )
-                    account_errors += 1
+            balance = ce.get_currency_balance(acct_name, 'eosio.token', 'EOS')
+            if len(balance) != 1 :
+                output.append('ERROR!!! account {0} has invalid number of balances: {1}'.format(acct_name,len(balance)) )
+                account_errors += 1
             try :
                 #poutput.append.poutput.append(acct['total_resources'])
                 bal = float(balance[0].strip(' EOS'))
