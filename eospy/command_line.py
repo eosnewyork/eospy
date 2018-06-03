@@ -130,7 +130,7 @@ def validate_chain():
             for perm in acct['permissions'] :
                 for keys in perm['required_auth']['keys'] :
                     if not acct_key == keys['key']:
-                        output.append('ERROR!!! {0} has mismatched keys expected {0} and got {1}'.format(acct_key, keys['key']))
+                        output.append('ERROR!!! {0} has mismatched keys expected {1} and got {2}'.format(acct_name, acct_key, keys['key']))
                         account_errors += 1
             # check last code update
             if u'1970-01-01T00:00:00.000' != acct['last_code_update'] :
