@@ -112,6 +112,7 @@ def validate_chain():
             output.append('ERROR!!! It appears {0} this account was not added.'.format(acct_name))
             account_errors += 1
             exit(1)
+            
         pprint.pprint(acct)
         output.append('SUCCESS!!! {0} was created and looks good.'.format(acct_name))
         append_output('\n'.join(output)+'\n')
@@ -122,7 +123,7 @@ def validate_chain():
         try:
             acct = ce.get_account(acct_name)
         except :
-            output.append('ERROR!!! It appears {0} this account was not added.'.format(acct_name))
+            output.append('ERROR!!! It appears {0} was not added.'.format(acct_name))
             account_errors += 1
         # redundant check
         if account_errors == 0 and acct_name == acct['account_name'] :         
@@ -161,8 +162,8 @@ def validate_chain():
 
             if account_errors == 0 :
                 output.append('SUCCESS!!! account: {0} appears vaild with {1} EOS, no contract set, and not privileged'.format(acct_name, acct_balance))
-        else :
-            output.append('ERROR!!! {0} does not appear to exist'.format(acct_name))
+        #else :
+        #    output.append('ERROR!!! {0} does not appear to exist'.format(acct_name))
         # append all output to global buffer
         append_output('\n'.join(output)+'\n')
         return account_errors
