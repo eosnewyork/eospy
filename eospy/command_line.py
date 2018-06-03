@@ -1,4 +1,3 @@
-ls
 import argparse
 from cleos import Cleos
 import pprint
