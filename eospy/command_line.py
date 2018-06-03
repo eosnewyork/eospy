@@ -102,7 +102,20 @@ def validate_chain():
                     line = write_buffer.pop()
             except IndexError:
                 pass
-        
+
+    def check_sys_accounts(acct_name) :
+        account_errors = 0
+        output = []
+        try :
+            acct = ce.get_account(acct_name)
+        except :
+            output.append('ERROR!!! It appears {0} this account was not added.'.format(acct_name))
+            account_errors += 1
+            exit(1)
+        pprint.pprint(acct)
+        output.append('SUCCESS!!! {0} was created and looks good.'.format(acct_name))
+        append_output('\n'.join(output)+'\n')
+            
     def check_acct(eth_key, acct_name, acct_key, acct_balance) :
         output = []
         account_errors = 0   
@@ -117,7 +130,7 @@ def validate_chain():
             for perm in acct['permissions'] :
                 for keys in perm['required_auth']['keys'] :
                     if not acct_key == keys['key']:
-                        output.append('ERROR!!! {0} has mismatched keys expected {0} and got {1}'.format(acct_key, key))
+                        output.append('ERROR!!! {0} has mismatched keys expected {0} and got {1}'.format(acct_key, keys['key']))
                         account_errors += 1
             # check last code update
             if u'1970-01-01T00:00:00.000' != acct['last_code_update'] :
@@ -176,6 +189,12 @@ def validate_chain():
     check_code('eosio.msig', args.msig_code)
     check_code('eosio.unregd', args.unregd_code)
 
+    if args.check_sys_accts :
+        for acct in ['bpay', 'msig', 'names','ram','ramfee','saving','stake','token', 'vpay'] :
+            check_sys_accounts('eosio.{0}'.format(acct))
+    else :
+        append_output('WARNING --- not checking system accounts\n')
+    
     # check the token create was valid
     if args.currency_chk :
         currency = ce.get_currency('eosio.token', 'EOS')
@@ -187,7 +206,7 @@ def validate_chain():
             append_output('ERROR!!! discrepency in initial token create: {0}\n'.format(curr_string))
     else :
         append_output('WARNING --- not checking initial token creation\n')
-
+    # write to the log    
     flush_output()
     # check if snapshot is valid
     if args.check_accts :
