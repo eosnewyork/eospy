@@ -39,7 +39,6 @@ def validate_chain():
     parser.add_argument('--currency-check',help='expected hash of the eosio system contract', type=str, action='store', dest='currency_chk')
     parser.add_argument('--ram-fee', help='Guesstimate on cost of ram over time', type=float, default=0, action='store', dest='ram_fee')
     parser.add_argument('--num-threads', help='number of threads to run', type=int, default=16, action='store', dest='num_thds')
-    parser.add_argument('--check-sys-accounts', help='check the system accounts are all correct', action='store_true', dest='check_sys_accts')
     parser.add_argument('--out-file', help='out file to right to', default='validation.txt', type=str, action='store', dest='out_file')
     
     args = parser.parse_args()
@@ -112,9 +111,19 @@ def validate_chain():
             output.append('ERROR!!! It appears {0} this account was not added.'.format(acct_name))
             account_errors += 1
             exit(1)
+        #pprint.pprint(acct)
+        # check owner/active is owned by eosio
+        for perm in acct['permissions'] :
+            accounts = perm['required_auth']['accounts']
+            valid_owner = 'eosio'
+            if acct_name == valid_owner :
+                valid_owner = 'eosio.prods'
+            if len(accounts) > 1 or accounts[0]['permission']['actor'] != valid_owner :
+                output.append('ERROR!!! accounts for {} is wrong: too many actors {} or bad actor {}'.format(acct_name, len(accounts), accounts[0]['permission']['actor']))
+                account_errors += 1
             
-        pprint.pprint(acct)
-        output.append('SUCCESS!!! {0} was created and looks good.'.format(acct_name))
+        if account_errors == 0 :
+            output.append('SUCCESS!!! {0} was created and looks good.'.format(acct_name))
         append_output('\n'.join(output)+'\n')
             
     def check_acct(eth_key, acct_name, acct_key, acct_balance) :
@@ -189,12 +198,6 @@ def validate_chain():
     # check privilege 
     check_code('eosio.msig', args.msig_code)
     check_code('eosio.unregd', args.unregd_code)
-
-    if args.check_sys_accts :
-        for acct in ['bpay', 'msig', 'names','ram','ramfee','saving','stake','token', 'vpay'] :
-            check_sys_accounts('eosio.{0}'.format(acct))
-    else :
-        append_output('WARNING --- not checking system accounts\n')
     
     # check the token create was valid
     if args.currency_chk :
@@ -211,6 +214,10 @@ def validate_chain():
     flush_output()
     # check if snapshot is valid
     if args.check_accts :
+        # check the system accounts
+        for acct in ['eosio', 'eosio.bpay', 'eosio.msig', 'eosio.names','eosio.ram','eosio.ramfee','eosio.saving','eosio.stake','eosio.token', 'eosio.vpay'] :
+            check_sys_accounts('{0}'.format(acct))
+            
         num_thds = args.num_thds
         if args.truncate_num and args.truncate_num < num_thds :
             append_output(args.truncate_num)
