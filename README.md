@@ -6,7 +6,7 @@ To install run
 
 ```
 # create virtual environment
-mkdir ~/envs/eospy
+mkdir -p ~/envs/eospy
 virtualenv ~/envs/eospy
 # activate the environment
 source ~/envs/eospy/bin/activate
