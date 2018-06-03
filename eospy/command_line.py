@@ -149,9 +149,7 @@ def validate_chain():
             if account_errors == 0 :
                 output.append('SUCCESS!!! account: {0} appears vaild with {1} EOS, no contract set, and not privileged'.format(acct_name, acct_balance))
         else :
-            output.append('ERROR!!! account name did not match for some reason')
-            output.append('This is a nightmare how did this happen?')
-            output.append('{0} != {1}'.format(acct_name, acct['account_name']))
+            output.append('ERROR!!! {0} does not appear to exist'.format(acct_name))
         # append all output to global buffer
         append_output('\n'.join(output)+'\n')
         return account_errors
