@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: eospy
+Version: DEV
+Summary: Python library for the eosio REST API
+Home-page: https://github.com/eosnewyork/eospy
+Author: deck
+Author-email: deck@eosnewyork.io
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
