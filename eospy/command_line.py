@@ -238,6 +238,9 @@ def validate_chain():
                 threads = []
                 cnt_thds=0
                 # get list of accounts
+                if cnt + num_thds > len(snap) :
+                    print 'deck is an asshat\n'
+                    num_thds = len(snap) - cnt
                 proc_list = snap[cnt:cnt+num_thds]
                 while cnt_thds < num_thds :
                     t = Thread(target=check_acct, args=(proc_list[cnt_thds]) )

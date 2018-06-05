@@ -92,6 +92,14 @@ class Cleos :
     def vote_producers(self, voter, proxy, producers) :
         return self.get('chain.abi_json_to_bin', params=None,json={"voter":voter, "proxy":proxy,"producers":producers})
 
+    def create_account(self, creator, acct_name, owner_key, active_key, stake, cpu, ramkb) :
+        json = {'code':'eosio','action':'buy', 'args':{} }
+        return self.post('chain.abi_json_to_bin',params=None, json=json)
+
+    def register_producer() :
+        json = {}
+        return self.post()
+    
     #####
     # wallet functions
     #####
