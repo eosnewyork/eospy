@@ -34,6 +34,21 @@ class Cleos :
         print(''+url)
         return get_cmd.get_url(url, **kwargs)
 
+    def post_wallet(self, func='', **kwargs) :
+        ''' '''
+        post_cmd = eval('self._walleturl.{0}'.format(func))
+        url = post_cmd.create_url()
+        print(''+url)
+        return post_cmd.get_url(url, **kwargs)
+    
+    #
+    # wallet functions
+    #
+    def wallet_unlock(name="default", password):
+        if not password:
+            print('Need to implement this.')
+            raise NotImplementedError
+        return post_wallet('wallet/unlock', params=[name,password], json=None)
     #
     # get methods
     #
