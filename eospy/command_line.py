@@ -23,6 +23,80 @@ def vote_for_bps():
     open_wallet = ce.wallet_open()
     pprint.pprint(open_wallet)
 
+def create_account():
+    parser = argparse.ArgumentParser(description='vote for block producers')
+    parser.add_argument('--api-version', type=str, default='v1', action='store', dest='api_version')
+    parser.add_argument('--url', type=str, action='store', required=True, dest='url')
+    #parser.add_argument('--wallet-url', type=str, action='store', required=True, dest='wallet_url')
+    #parser.add_argument('--wallet-name', type=str, default='default', action='store', dest='wallet_name')
+    parser.add_argument('--creator', type=str, action='store', required=True, dest='creator')
+    parser.add_argument('--account', type=str, action='store', required=True, dest='account')
+    parser.add_argument('--stake-cpu', type=str, action='store', required=True, dest='cpu')
+    parser.add_argument('--stake-net', type=str, action='store', required=True, dest='net')
+    parser.add_argument('--buy-ram-kbytes', type=str, action='store', required=True, dest='ram')
+    args = parser.parse_args()
+
+    ce = Cleos(url=args.url)
+    # get chain infomation
+    print('Getting chain information')
+    info = ce.get_info()
+    pprint.pprint(info)
+
+def spam_up_in_here():
+    parser = argparse.ArgumentParser(description='vote for block producers')
+    parser.add_argument('--api-version', type=str, default='v1', action='store', dest='api_version')
+    parser.add_argument('--peers', help='hosts to connect to', nargs='+', type=str, required=True, action='store', dest='hosts')
+    parser.add_argument('--num-threads', help='number of threads to run', type=int, default=16, action='store', dest='num_transactions')
+    parser.add_argument('--num-transactions', help='number of transactions to run', type=int, default=1000, action='store', dest='num_thds')
+    parser.add_argument('--log-directory', type=str, default='/tmp', action='store', dest='log_dir')
+    args = parser.parse_args()
+    import os
+    import logging
+    from threading import Thread
+    import re
+    ########################
+    # functions
+    ########################
+    
+    def create_transactions(host, thd_cnt, trans_cnt):
+        ce = Cleos(url=host, version=args.api_version)
+        print('Getting chain information')
+        info = ce.get_info()
+        print(info['chain_id'])
+        url = re.compile(r"https?://(www\.)?")
+        host_file = url.sub('',host)
+        log_file = os.path.join(args.log_dir,host_file+'.log').replace(':','_')
+        print('Logging to {}'.format(log_file))
+        # create logger
+        logger = logging.getLogger('eospy.{}'.format(host))
+        logger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        fh = logging.FileHandler(log_file)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+        logger.info('Starting transactions')
+        
+        logger.info('Done transactions transactions')
+
+    ########################
+    # run the tests
+    ########################
+    # create the threads
+    host_thds = []
+    for host in args.hosts :
+        # create host threads
+        print("Starting up {}".format(host))
+        t = Thread(target=create_transactions, args=(host,args.num_thds, args.num_transactions))
+        t.start()
+        host_thds.append(t)
+    print('Created {} host threads each running {} threads and {}.'.format(len(args.hosts), args.num_thds, args.num_transactions))
+    print('Total Transactions: {}'.format(len(args.hosts) * args.num_thds * args.num_transactions))
+    print('Waiting for threads to end.')
+
+    for thd in host_thds :
+        thd.join()
+        
+    
 def validate_chain():
     parser = argparse.ArgumentParser(description='validate the chain')
     parser.add_argument('--api-version', help='version of the api to connect to', type=str, default='v1', action='store', dest='api_version')

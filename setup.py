@@ -14,7 +14,9 @@ setup(name='eospy',
       entry_points = {
           'console_scripts' :[
               'vote_for_bps = eospy.command_line:vote_for_bps',
-              'validate_chain = eospy.command_line:validate_chain'
+              'validate_chain = eospy.command_line:validate_chain',
+              'create_account = eospy.command_line:create_account',
+              'spammer = eospy.command_line:spam_up_in_here'
           ],
       }
 )

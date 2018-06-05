@@ -93,8 +93,9 @@ class Cleos :
         return self.get('chain.abi_json_to_bin', params=None,json={"voter":voter, "proxy":proxy,"producers":producers})
 
     def create_account(self, creator, acct_name, owner_key, active_key, stake, cpu, ramkb) :
-        json = {'code':'eosio','action':'buy', 'args':{} }
-        return self.post('chain.abi_json_to_bin',params=None, json=json)
+        ram_json = {'code':'eosio','action':'buy', 'args':{'payer':'eosio', 'receiver':acct_name, 'bytes': ramkb*1024} }
+        ram_ret = self.post('chain.abi_json_to_bin',params=None, json=json)
+        print ram_ret
 
     def register_producer() :
         json = {}
