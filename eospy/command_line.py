@@ -120,7 +120,7 @@ def validate_chain():
     parser.add_argument('--currency-check',help='expected hash of the eosio system contract', type=str, action='store', dest='currency_chk')
     parser.add_argument('--ram-fee', help='Guesstimate on cost of ram over time', type=float, default=0, action='store', dest='ram_fee')
     parser.add_argument('--num-threads', help='number of threads to run', type=int, default=16, action='store', dest='num_thds')
-    parser.add_argument('--out-file', help='out file to right to', default='validation.txt', type=str, action='store', dest='out_file')
+    parser.add_argument('--out-file', help='out file to write to', default='validation.txt', type=str, action='store', dest='out_file')
     
     args = parser.parse_args()
     # imports
