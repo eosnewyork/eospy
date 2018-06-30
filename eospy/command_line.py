@@ -2,107 +2,87 @@ import argparse
 from cleos import Cleos
 import pprint
 
-def vote_for_bps():
-    parser = argparse.ArgumentParser(description='vote for block producers')
+def cleos():
+    parser = argparse.ArgumentParser(description='Command Line Interface to EOSIO via python')
     parser.add_argument('--api-version', type=str, default='v1', action='store', dest='api_version')
     parser.add_argument('--url', type=str, action='store', required=True, dest='url')
-    parser.add_argument('--wallet-url', type=str, action='store', required=True, dest='wallet_url')
-    parser.add_argument('--wallet-name', type=str, default='default', action='store', dest='wallet_name')
-    raise NotImplementedError
+    subparsers = parser.add_subparsers(dest='subparser')
+    # get
+    get_parser = subparsers.add_parser('get')
+    get_subparsers = get_parser.add_subparsers(dest='get')
+    # info
+    info_parser = get_subparsers.add_parser('info')
+    # block
+    block_parser = get_subparsers.add_parser('block')
+    block_parser.add_argument('--block','-b', type=str, action='store', required=True, dest='block')
+    # account
+    account_parser = get_subparsers.add_parser('account')
+    account_parser.add_argument('--account','-a', type=str, action='store', required=True, dest='acct')
+    # code
+    code_parser = get_subparsers.add_parser('code')
+    code_parser.add_argument('--account','-a', type=str, action='store', required=True, dest='acct')
+    # abi
+    abi_parser = get_subparsers.add_parser('abi')
+    abi_parser.add_argument('--account','-a', type=str, action='store', required=True, dest='acct')
+    # table
+    table_parser = get_subparsers.add_parser('table')
+    table_parser.add_argument('--code', type=str, action='store', required=True, dest='code')
+    table_parser.add_argument('--scope', type=str, action='store', required=True, dest='scope')
+    table_parser.add_argument('--table', type=str, action='store', required=True, dest='table')
+    table_parser.add_argument('--table-key', type=str, action='store', default="", dest='table_key')
+    table_parser.add_argument('--lower-bound', type=int, action='store', default=0, dest='lower_bound')
+    table_parser.add_argument('--upper-bound', type=int, action='store', default=-1, dest='upper_bound')
+    table_parser.add_argument('--limit', type=int, action='store', default=1000, dest='limit')
+    # currency
+    currency = get_subparsers.add_parser('currency')
+    currency.add_argument('type',choices=['balance','stats'], type=str)
+    currency.add_argument('--code', type=str, action='store', required=True, dest='code')
+    currency.add_argument('--symbol', type=str, action='store', required=True, dest='symbol')
+    currency.add_argument('--account','-a', type=str, action='store', dest='acct')
+    # accounts
+    accounts = get_subparsers.add_parser('accounts')
+    accounts.add_argument('--key', type=str, action='store', required=True, dest='key')
+    # transaction
+    transaction = get_subparsers.add_parser('transaction')
+    transaction.add_argument('--transaction','-t', type=str, action='store', required=True, dest='transaction')
+    # actions
+    actions = get_subparsers.add_parser('actions')
+    actions.add_argument('--account','-a', type=str, action='store', required=True, dest='acct')
+    actions.add_argument('--pos', type=int, action='store', default=-1, dest='pos')
+    actions.add_argument('--offset', type=int, action='store', default=-20, dest='offset')
     args = parser.parse_args()
-    # connect to http endpoint
-    ce = Cleos(url=args.url, wallet_url=args.wallet_url, version=args.api_version)
-    # get chain infomation
-    info = ce.get_info()
-    pprint.pprint(info)
-    wallets = ce.wallet_list()
-    if args.wallet_name in wallets :
-        print('Wallet {0} already exists',args.wallet_name)
-    else :
-        print('creating wallet')
-    open_wallet = ce.wallet_open()
-    pprint.pprint(open_wallet)
-
-def create_account():
-    parser = argparse.ArgumentParser(description='vote for block producers')
-    parser.add_argument('--api-version', type=str, default='v1', action='store', dest='api_version')
-    parser.add_argument('--url', type=str, action='store', required=True, dest='url')
-    parser.add_argument('--wallet-url', type=str, action='store', required=True, dest='wallet_url')
-    parser.add_argument('--wallet-name', type=str, default='default', action='store', dest='wallet_name')
-    parser.add_argument('--unlock', help='Whether to unlock the wallet now',  action='store_true', dest='unlock')
-    parser.add_argument('--wallet-pw', type=str, action='store', dest='wallet_pw')
-    parser.add_argument('--creator', type=str, action='store', required=True, dest='creator')
-    parser.add_argument('--account', type=str, action='store', required=True, dest='account')
-    parser.add_argument('--stake-cpu', type=str, action='store', required=True, dest='cpu')
-    parser.add_argument('--stake-net', type=str, action='store', required=True, dest='net')
-    parser.add_argument('--buy-ram-kbytes', type=str, action='store', required=True, dest='ram')
-    args = parser.parse_args()
-
-    ce = Cleos(url=args.url,wallet_url=args.wallet_url, version=args.api_version)
-    if args.unlock :
-        # unlock the wallet
-        ce.wallet_unlock(args.wallet_pw)
-        
-    # get chain infomation
-    #print('Getting chain information')
-    #info = ce.get_info()
-    #pprint.pprint(info)
-    
-
-def spam_up_in_here():
-    parser = argparse.ArgumentParser(description='vote for block producers')
-    parser.add_argument('--api-version', type=str, default='v1', action='store', dest='api_version')
-    parser.add_argument('--peers', help='hosts to connect to', nargs='+', type=str, required=True, action='store', dest='hosts')
-    parser.add_argument('--num-threads', help='number of threads to run', type=int, default=16, action='store', dest='num_transactions')
-    parser.add_argument('--num-transactions', help='number of transactions to run', type=int, default=1000, action='store', dest='num_thds')
-    parser.add_argument('--log-directory', type=str, default='/tmp', action='store', dest='log_dir')
-    args = parser.parse_args()
-    import os
-    import logging
-    from threading import Thread
-    import re
-    ########################
-    # functions
-    ########################
-    
-    def create_transactions(host, thd_cnt, trans_cnt):
-        ce = Cleos(url=host, version=args.api_version)
-        print('Getting chain information')
-        info = ce.get_info()
-        print(info['chain_id'])
-        url = re.compile(r"https?://(www\.)?")
-        host_file = url.sub('',host)
-        log_file = os.path.join(args.log_dir,host_file+'.log').replace(':','_')
-        print('Logging to {}'.format(log_file))
-        # create logger
-        logger = logging.getLogger('eospy.{}'.format(host))
-        logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        fh = logging.FileHandler(log_file)
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
-        logger.info('Starting transactions')
-        
-        logger.info('Done transactions transactions')
-
-    ########################
-    # run the tests
-    ########################
-    # create the threads
-    host_thds = []
-    for host in args.hosts :
-        # create host threads
-        print("Starting up {}".format(host))
-        t = Thread(target=create_transactions, args=(host,args.num_thds, args.num_transactions))
-        t.start()
-        host_thds.append(t)
-    print('Created {} host threads each running {} threads and {}.'.format(len(args.hosts), args.num_thds, args.num_transactions))
-    print('Total Transactions: {}'.format(len(args.hosts) * args.num_thds * args.num_transactions))
-    print('Waiting for threads to end.')
-
-    for thd in host_thds :
-        thd.join()
-        
+    # 
+    # connect 
+    ce = Cleos(url=args.url, version=args.api_version)
+    # run commands based on subparser
+    if args.subparser == 'get' :
+        if args.get == 'info' :
+            pprint.pprint(ce.get_info())
+        elif args.get == 'block' :
+            pprint.pprint(ce.get_block(args.block))
+        elif args.get == 'account' :
+            pprint.pprint(ce.get_account(args.acct))
+        elif args.get == 'code' :
+            pprint.pprint(ce.get_code(args.acct))
+        elif args.get == 'abi' :
+            pprint.pprint(ce.get_abi(args.acct))
+        elif args.get == 'table' :
+            table = ce.get_table(code=args.code, scope=args.scope, table=args.table, table_key=args.table_key, lower_bound=args.lower_bound, upper_bound=args.upper_bound, limit=args.limit)
+            pprint.pprint(table)
+        elif args.get == 'currency' :
+            if args.type == 'balance' :
+                if args.acct :
+                    pprint.pprint(ce.get_currency_balance(args.acct, code=args.code, symbol=args.symbol))
+                else :
+                    raise ValueError('--account is required')
+            else :
+                pprint.pprint(ce.get_currency(code=args.code, symbol=args.symbol))
+        elif args.get == 'accounts' :
+            pprint.pprint(ce.get_accounts(args.key))
+        elif args.get == 'transaction' :
+            pprint.pprint(ce.get_transaction(args.transaction))
+        elif args.get == 'actions' :
+            pprint.pprint(ce.get_actions(args.acct, pos=args.pos, offset=args.offset))
     
 def validate_chain():
     parser = argparse.ArgumentParser(description='validate the chain')

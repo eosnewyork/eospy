@@ -60,7 +60,7 @@ class Cleos :
     
     def get_block(self, block_num) :
         ''' '''
-        return self.get('chain.get_block', params=None, json={'block_num_or_id' : block_num})
+        return self.post('chain.get_block', params=None, json={'block_num_or_id' : block_num})
 
     def get_account(self, acct_name) :
         ''' '''
@@ -70,9 +70,21 @@ class Cleos :
         ''' '''
         return self.post('chain.get_code', params=None, json={'account_name':acct_name, 'code_as_wasm':code_as_wasm})
     
-    def get_table(self) :
+    def get_accounts(self, public_key) :
         ''' '''
-        raise NotImplementedError
+        return self.post('history.get_key_accounts', params=None, json={'public_key':public_key})
+
+    def get_abi(self, acct_name) :
+        ''' '''
+        return self.post('chain.get_abi', params=None, json={'account_name' : acct_name})
+        
+    def get_actions(self, acct_name, pos=-1, offset=-20) :
+        '''
+        POST /v1/history/get_actions
+        {"account_name":"eosnewyorkio","pos":-1,"offset":-20}
+        '''
+        json={'account_name' : acct_name, "pos" : pos, "offset" : offset}
+        return self.post('history.get_actions', params=None, json=json)
 
     def get_currency(self, code='eosio.token', symbol='EOS') :
         '''
@@ -80,6 +92,7 @@ class Cleos :
         {"json":false,"code":"eosio.token","symbol":"EOS"}
         '''
         json={'json':False, 'code':code, 'symbol':symbol}
+        print json
         return self.post('chain.get_currency_stats', params=None, json=json)
 
     def get_currency_balance(self, account, code='eosio.token', symbol='EOS') :
@@ -90,17 +103,23 @@ class Cleos :
       json={'account':account, 'code':code, 'symbol':symbol}
       return self.post('chain.get_currency_balance', params=None, json=json)
     
-    def get_accounts(self, public_key) :
-        ''' '''
-        return self.get('account_history.get_key_accounts', params=None, json={'public_key':public_key})
-
     def get_servants(self, acct_name) :
         ''' '''
         return self.post('account_history.get_controlled_accounts', params=None, json={'controlling_account':acct_name})
 
     def get_transaction(self, trans_id) :
         ''' '''
-        return self.get('account_history.get_transaction', params=None, json={'transaction_id':trans_id})
+        return self.post('history.get_transaction', params=None, json={'transaction_id':trans_id})
+
+    def get_table(self, code, scope, table, table_key, lower_bound='0', upper_bound='-1', limit=10) :
+        '''
+        POST /v1/chain/get_table_rows
+        {"json":true,"code":"eosio","scope":"eosio","table":"producers","table_key":"","lower_bound":"","upper_bound":"","limit":10}
+        '''
+        json = {"json":True, "code":code, "scope":scope, "table":table, "table_key":table_key, "lower_bound": lower_bound, "upper_bound": upper_bound, "limit": limit}
+        print json
+        return self.post('chain.get_table_rows', params=None, json=json)
+        
     #####
     # system functions
     #####

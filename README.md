@@ -2,7 +2,7 @@
 
 This library is very much a work in progress however it has enough implemented to validate a chain.
 
-To install run
+## Installation
 
 ```
 # create virtual environment
@@ -14,6 +14,44 @@ source ~/envs/eospy/bin/activate
 pip install git+https://github.com/eosnewyork/eospy
 ```
 
+## Command line Tool Examples
+```
+# Get chain information
+pycleos --url https://api.eosnewyork.io get info
+
+# get information about a block
+pycleos --url https://api.eosnewyork.io get block 447
+
+# Retrieve an account from the blockchain
+pycloes --url https://api.eosnewyork.io get account --account eosio
+
+# Retrieve the code and ABI for an account
+pycleos --url https://api.eosnewyork.io get code --account eosio
+
+# Retrieve the ABI for an account
+pycleos --url https://api.eosnewyork.io get abi --account eosio
+
+# Retrieve the contents of a database table
+pycleos --url https://api.eosnewyork.io get table --code eosio --scope eosio --table producers
+
+# Retrive currency information
+pycleos --url https://api.eosnewyork.io get currency balance --code eosio.token --symbol EOS --account aaaaaaaaaaaa
+pycleos --url https://api.eosnewyork.io get currency stats --code eosio.token --symbol EOS
+
+# get accounts associated with public key
+pycleos --url https://api.eosnewyork.io get accounts --key EOS52gpRqAPfggYHLXbMuC4TSQd8WWWo94KrMq4umgUcjM62Y2dWF
+
+# get transaction information
+pycleos --url https://api.eosnewyork.io get transaction --transaction 42dacd5722001b734be46a2140917e06cd21d42425f927f506c07b4388b07f62
+
+# get account actions
+pycleos --url https://api.eosnewyork.io get actions --account aaaaaaaaaaaa
+
+```
+
+## More Documentation to come!!!!
+
+## Chain Validation
 To validate a chain run something like the following:
 
 ```
