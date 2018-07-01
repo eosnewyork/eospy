@@ -4,6 +4,7 @@ This library is very much a work in progress however it has enough implemented t
 
 ## Installation
 
+### Linux
 ```
 # create virtual environment
 mkdir -p ~/envs/eospy
@@ -11,6 +12,21 @@ virtualenv ~/envs/eospy
 # activate the environment
 source ~/envs/eospy/bin/activate
 # install the library
+pip install git+https://github.com/eosnewyork/eospy
+```
+
+### Windows
+
+1. Install python
+https://www.howtogeek.com/197947/how-to-install-python-on-windows/
+[Python 2.7](https://www.python.org/downloads/release/python-2715/)
+[Python 3.7](https://www.python.org/downloads/release/python-370/)
+
+2. Install git
+https://www.atlassian.com/git/tutorials/install-git
+
+3. Install eospy
+```
 pip install git+https://github.com/eosnewyork/eospy
 ```
 
