@@ -92,7 +92,6 @@ class Cleos :
         {"json":false,"code":"eosio.token","symbol":"EOS"}
         '''
         json={'json':False, 'code':code, 'symbol':symbol}
-        print json
         return self.post('chain.get_currency_stats', params=None, json=json)
 
     def get_currency_balance(self, account, code='eosio.token', symbol='EOS') :
@@ -117,7 +116,6 @@ class Cleos :
         {"json":true,"code":"eosio","scope":"eosio","table":"producers","table_key":"","lower_bound":"","upper_bound":"","limit":10}
         '''
         json = {"json":True, "code":code, "scope":scope, "table":table, "table_key":table_key, "lower_bound": lower_bound, "upper_bound": upper_bound, "limit": limit}
-        print json
         return self.post('chain.get_table_rows', params=None, json=json)
         
     #####
@@ -130,7 +128,6 @@ class Cleos :
     def create_account(self, creator, acct_name, owner_key, active_key, stake, cpu, ramkb) :
         ram_json = {'code':'eosio','action':'buy', 'args':{'payer':'eosio', 'receiver':acct_name, 'bytes': ramkb*1024} }
         ram_ret = self.post('chain.abi_json_to_bin',params=None, json=json)
-        print ram_ret
 
     def register_producer() :
         json = {}

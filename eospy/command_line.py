@@ -1,5 +1,5 @@
 import argparse
-from cleos import Cleos
+from .cleos import Cleos
 import pprint
 
 def cleos():
