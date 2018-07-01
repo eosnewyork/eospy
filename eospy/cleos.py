@@ -2,7 +2,7 @@
 # cleos.py
 #
 
-from dynamic_url import DynamicUrl
+from .dynamic_url import DynamicUrl
 import json
 
 class Cleos :
