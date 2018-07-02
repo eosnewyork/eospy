@@ -1,5 +1,24 @@
 # eospy library
 
+This library is still a work in progress but currently has the ability to perform all `cleos get` functions without compiling the code.
+The cleos commands currently implemented.
+```
+Usage: /usr/local/bin/cleos get SUBCOMMAND
+
+Subcommands:
+  info                        Get current blockchain information
+  block                       Retrieve a full block from the blockchain
+  account                     Retrieve an account from the blockchain
+  code                        Retrieve the code and ABI for an account
+  abi                         Retrieve the ABI for an account
+  table                       Retrieve the contents of a database table
+  currency                    Retrieve information related to standard currencies
+  accounts                    Retrieve accounts associated with a public key
+  servants                    Retrieve accounts which are servants of a given account
+  transaction                 Retrieve a transaction from the blockchain
+  actions                     Retrieve all actions with specific account name referenced in authorization or receiver
+```
+
 This library is very much a work in progress however it has enough implemented to validate a chain.
 
 ## Installation
@@ -18,6 +37,7 @@ pip install git+https://github.com/eosnewyork/eospy
 ### Windows
 
 1. Install python
+You can use either Python 2.7 or 3.7 however we suggest python 3.7 as we have tested that version more thoroughly.
 https://www.howtogeek.com/197947/how-to-install-python-on-windows/
 [Python 2.7](https://www.python.org/downloads/release/python-2715/)
 [Python 3.7](https://www.python.org/downloads/release/python-370/)
@@ -39,7 +59,7 @@ pycleos --url https://api.eosnewyork.io get info
 pycleos --url https://api.eosnewyork.io get block 447
 
 # Retrieve an account from the blockchain
-pycloes --url https://api.eosnewyork.io get account --account eosio
+pycleos --url https://api.eosnewyork.io get account --account eosio
 
 # Retrieve the code and ABI for an account
 pycleos --url https://api.eosnewyork.io get code --account eosio

@@ -4,7 +4,7 @@ import pprint
 
 def cleos():
     parser = argparse.ArgumentParser(description='Command Line Interface to EOSIO via python')
-    parser.add_argument('--api-version', type=str, default='v1', action='store', dest='api_version')
+    parser.add_argument('--api-version','-v', type=str, default='v1', action='store', dest='api_version')
     parser.add_argument('--url', '-u', type=str, action='store', required=True, dest='url')
     subparsers = parser.add_subparsers(dest='subparser')
 
@@ -31,9 +31,9 @@ def cleos():
     #abi_parser.add_argument('account', type=str)
     # table
     table_parser = get_subparsers.add_parser('table')
-    table_parser.add_argument('--code', type=str, action='store', required=True, dest='code')
-    table_parser.add_argument('--scope', type=str, action='store', required=True, dest='scope')
-    table_parser.add_argument('--table', type=str, action='store', required=True, dest='table')
+    table_parser.add_argument('--code', '-c', type=str, action='store', required=True, dest='code')
+    table_parser.add_argument('--scope', '-S', type=str, action='store', required=True, dest='scope')
+    table_parser.add_argument('--table','-t', type=str, action='store', required=True, dest='table')
     #table_parser.add_argument('contract', type=str, help='The contract who owns the table (required)')
     #table_parser.add_argument('scope', type=str, help='The scope within the contract in which the table is found (required)')
     #table_parser.add_argument('table', type=str, help='The name of the table as specified by the contract abi (required)')
@@ -44,18 +44,18 @@ def cleos():
     # currency
     currency = get_subparsers.add_parser('currency')
     currency.add_argument('type',choices=['balance','stats'], type=str)
-    currency.add_argument('--code', type=str, action='store', required=True, dest='code')
-    currency.add_argument('--symbol', type=str, action='store', required=True, dest='symbol')
-    currency.add_argument('--account','-a', type=str, action='store', dest='acct')
+    currency.add_argument('--code','-c', type=str, action='store', required=True, dest='code')
+    currency.add_argument('--symbol','-s', type=str, action='store', required=True, dest='symbol')
+    currency.add_argument('--account','-a', type=str, action='store', dest='account')
     # accounts
     accounts = get_subparsers.add_parser('accounts')
-    accounts.add_argument('--key', type=str, action='store', required=True, dest='key')
+    accounts.add_argument('--key','-k', type=str, action='store', required=True, dest='key')
     # transaction
     transaction = get_subparsers.add_parser('transaction')
     transaction.add_argument('--transaction','-t', type=str, action='store', required=True, dest='transaction')
     # actions
     actions = get_subparsers.add_parser('actions')
-    actions.add_argument('--account','-a', type=str, action='store', required=True, dest='acct')
+    actions.add_argument('--account','-a', type=str, action='store', required=True, dest='account')
     actions.add_argument('--pos', type=int, action='store', default=-1, dest='pos')
     actions.add_argument('--offset', type=int, action='store', default=-20, dest='offset')
     args = parser.parse_args()
@@ -71,17 +71,17 @@ def cleos():
         elif args.get == 'block' :
             pp.pprint(ce.get_block(args.block))
         elif args.get == 'account' :
-            pp.pprint(ce.get_account(args.acct))
+            pp.pprint(ce.get_account(args.account))
         elif args.get == 'code' :
             pp.pprint(ce.get_code(args.account))
         elif args.get == 'abi' :
             pp.pprint(ce.get_abi(args.account))
         elif args.get == 'table' :
-            table = ce.get_table(code=args.contract, scope=args.scope, table=args.table, table_key=args.table_key, lower_bound=args.lower_bound, upper_bound=args.upper_bound, limit=args.limit)
+            table = ce.get_table(code=args.code, scope=args.scope, table=args.table, table_key=args.table_key, lower_bound=args.lower_bound, upper_bound=args.upper_bound, limit=args.limit)
             pp.pprint(table)
         elif args.get == 'currency' :
             if args.type == 'balance' :
-                if args.acct :
+                if args.account :
                     pp.pprint(ce.get_currency_balance(args.account, code=args.code, symbol=args.symbol))
                 else :
                     raise ValueError('--account is required')
@@ -92,7 +92,7 @@ def cleos():
         elif args.get == 'transaction' :
             pp.pprint(ce.get_transaction(args.transaction))
         elif args.get == 'actions' :
-            pp.pprint(ce.get_actions(args.acct, pos=args.pos, offset=args.offset))
+            pp.pprint(ce.get_actions(args.account, pos=args.pos, offset=args.offset))
     
 def validate_chain():
     parser = argparse.ArgumentParser(description='validate the chain')
