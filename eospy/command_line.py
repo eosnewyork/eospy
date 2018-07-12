@@ -7,7 +7,6 @@ def cleos():
     parser.add_argument('--api-version','-v', type=str, default='v1', action='store', dest='api_version')
     parser.add_argument('--url', '-u', type=str, action='store', required=True, dest='url')
     subparsers = parser.add_subparsers(dest='subparser')
-
     # get
     get_parser = subparsers.add_parser('get')
     get_subparsers = get_parser.add_subparsers(dest='get')
@@ -58,6 +57,10 @@ def cleos():
     actions.add_argument('--account','-a', type=str, action='store', required=True, dest='account')
     actions.add_argument('--pos', type=int, action='store', default=-1, dest='pos')
     actions.add_argument('--offset', type=int, action='store', default=-20, dest='offset')
+    # create
+    create_parser = subparsers.add_parser('create')
+    create_subparsers = create_parser.add_subparsers(dest='create')
+    key = create_subparsers.add_parser('key')
     args = parser.parse_args()
     # 
     # connect 
@@ -93,6 +96,11 @@ def cleos():
             pp.pprint(ce.get_transaction(args.transaction))
         elif args.get == 'actions' :
             pp.pprint(ce.get_actions(args.account, pos=args.pos, offset=args.offset))
+    elif args.subparser == 'create' :
+        if args.create == 'key' :
+            k = ce.create_key()
+            print('Private key:{}'.format(k.to_wif()))
+            print('Public key: {}'.format(k.to_public()))
     
 def validate_chain():
     parser = argparse.ArgumentParser(description='validate the chain')

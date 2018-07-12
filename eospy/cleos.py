@@ -3,6 +3,7 @@
 #
 
 from .dynamic_url import DynamicUrl
+from .keys import EOSKey
 import json
 
 class Cleos :
@@ -31,14 +32,12 @@ class Cleos :
         ''' '''
         get_cmd = eval('self._walleturl.{0}'.format(func))
         url = get_cmd.create_url()
-        print(''+url)
         return get_cmd.get_url(url, **kwargs)
 
     def post_wallet(self, func='', **kwargs) :
         ''' '''
         post_cmd = eval('self._walleturl.{0}'.format(func))
         url = post_cmd.create_url()
-        print(''+url)
         return post_cmd.get_url(url, **kwargs)
     
     #
@@ -46,7 +45,6 @@ class Cleos :
     #
     def wallet_unlock(self, password, name="default",):
         if not password:
-            print('Need to implement this.')
             raise NotImplementedError
         return self.post_wallet('wallet.unlock', params=[name,password], json=None)
     
@@ -117,6 +115,22 @@ class Cleos :
         '''
         json = {"json":True, "code":code, "scope":scope, "table":table, "table_key":table_key, "lower_bound": lower_bound, "upper_bound": upper_bound, "limit": limit}
         return self.post('chain.get_table_rows', params=None, json=json)
+
+    #####
+    # create keys
+    #####
+
+    def create_key(self) :
+        ''' '''
+        k = EOSKey()
+        return k
+        
+        
+    #####
+    # multisig
+    #####
+    
+    #def multisig_review(self, )
         
     #####
     # system functions
