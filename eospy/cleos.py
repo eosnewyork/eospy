@@ -105,8 +105,11 @@ class Cleos :
         return self.post('account_history.get_controlled_accounts', params=None, json={'controlling_account':acct_name})
 
     def get_transaction(self, trans_id) :
-        ''' '''
-        return self.post('history.get_transaction', params=None, json={'transaction_id':trans_id})
+        '''
+        POST /v1/history/get_transaction
+        {"id":"abcd1234"}
+        '''
+        return self.post('history.get_transaction', params=None, json={'id': trans_id})
 
     def get_table(self, code, scope, table, table_key, lower_bound='0', upper_bound='-1', limit=10) :
         '''
