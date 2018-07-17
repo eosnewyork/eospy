@@ -111,7 +111,7 @@ class Cleos :
         '''
         return self.post('history.get_transaction', params=None, json={'id': trans_id})
 
-    def get_table(self, code, scope, table, table_key, lower_bound='0', upper_bound='-1', limit=10) :
+    def get_table(self, code, scope, table, table_key='', lower_bound='0', upper_bound='-1', limit=10) :
         '''
         POST /v1/chain/get_table_rows
         {"json":true,"code":"eosio","scope":"eosio","table":"producers","table_key":"","lower_bound":"","upper_bound":"","limit":10}
@@ -119,6 +119,27 @@ class Cleos :
         json = {"json":True, "code":code, "scope":scope, "table":table, "table_key":table_key, "lower_bound": lower_bound, "upper_bound": upper_bound, "limit": limit}
         return self.post('chain.get_table_rows', params=None, json=json)
 
+    def get_producers(self, lower_bound='', limit=50) :
+        '''
+        POST /v1/chain/get_producers HTTP/1.0
+        {"json":true,"lower_bound":"","limit":50}
+        '''
+        return self.post('chain.get_producers', params=None, json={'json':True, 'lower_bound':lower_bound, 'limit':limit})
+        
+    #####
+    # bin/json 
+    #####
+    
+    def abi_bin_to_json(self, code, action, binargs) :
+        ''' '''
+        json = {'code':code, 'action':action, 'binargs': binargs}
+        return self.post('chain.abi_bin_to_json', params=None, json=json)
+
+    def abi_json_to_bin(self, code, action, args) :
+        ''' '''
+        json = {'code':code, 'action':action, 'args': args}
+        return self.post('chain.abi_json_to_bin', params=None, json=json)
+        
     #####
     # create keys
     #####

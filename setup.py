@@ -3,14 +3,17 @@ import os
 
 setup(name='eospy',
       #version=os.getenv('BUILD_VERSION', 'DEV'),
-      version='1.0.1',
+      version='1.0.3',
       description='Python library for the eosio REST API',
       author='deck',
       author_email='deck@eosnewyork.io',
       url='https://github.com/eosnewyork/eospy',
       packages=find_packages(),
       install_requires=[
-          'requests'
+          'requests',
+          'base58',
+          'ecdsa',
+          'python-jsonschema-objects'
       ],
       entry_points = {
           'console_scripts' :[
