@@ -4,6 +4,8 @@
 
 from .dynamic_url import DynamicUrl
 from .keys import EOSKey
+import utils
+import types
 import json
 
 class Cleos :
@@ -48,18 +50,23 @@ class Cleos :
             raise NotImplementedError
         return self.post_wallet('wallet.unlock', params=[name,password], json=None)
     
-    #
+    #####
     # get methods
-    #
-    
+    #####
     def get_info(self) :
         ''' '''
         return self.get('chain.get_info')
-    
+
+    def get_chain_lib_info(self) :
+        ''' '''
+        chain_info = self.get('chain.get_info')
+        lib_info = self.get_block(chain_info['last_irreversible_block_num'])
+        return chain_info, lib_info
+        
     def get_block(self, block_num) :
         ''' '''
         return self.post('chain.get_block', params=None, json={'block_num_or_id' : block_num})
-
+        
     def get_account(self, acct_name) :
         ''' '''
         return self.post('chain.get_account', params=None, json={'account_name' : acct_name})
@@ -99,6 +106,9 @@ class Cleos :
       '''
       json={'account':account, 'code':code, 'symbol':symbol}
       return self.post('chain.get_currency_balance', params=None, json=json)
+
+    def get_currency_stats(self, code, symbol) :
+        return self.post('chain.get_currency_stats', json={'code':code, 'symbol':symbol})
     
     def get_servants(self, acct_name) :
         ''' '''
@@ -111,7 +121,7 @@ class Cleos :
         '''
         return self.post('history.get_transaction', params=None, json={'id': trans_id})
 
-    def get_table(self, code, scope, table, table_key='', lower_bound='0', upper_bound='-1', limit=10) :
+    def get_table(self, code, scope, table, table_key='', lower_bound='', upper_bound='', limit=10) :
         '''
         POST /v1/chain/get_table_rows
         {"json":true,"code":"eosio","scope":"eosio","table":"producers","table_key":"","lower_bound":"","upper_bound":"","limit":10}
@@ -125,6 +135,44 @@ class Cleos :
         {"json":true,"lower_bound":"","limit":50}
         '''
         return self.post('chain.get_producers', params=None, json={'json':True, 'lower_bound':lower_bound, 'limit':limit})
+
+    #####
+    # transactions
+    #####
+    def push_transaction(self, transaction, keys, broadcast=True, compression='none') :
+        ''' '''
+        chain_info,lib_info = self.get_chain_lib_info()
+        trx = types.Transaction(transaction, chain_info, lib_info)
+        encoded = trx.encode()
+        digest = utils.sig_digest(trx.encode(), chain_info['chain_id'])
+        # sign the transaction
+        signatures = []
+        if not isinstance(keys, list) :
+            keys = [keys]
+        for key in keys :
+            print(key)
+            if utils.check_wif(key) :
+                k = EOSKey(key)
+            elif isinstance(key, EOSKey) :
+                k = key
+            else :
+                raise ValueError('Must pass a WIF string or EOSKey')
+            signatures.append(k.sign(digest))
+        # build final trx
+        
+        final_trx = {
+                'compression' : compression,
+                'transaction' : trx.__dict__,
+                'signatures' : signatures
+        }
+        data = json.dumps(final_trx, cls=types.EOSEncoder)
+        if broadcast :
+            return self.post('chain.push_transaction', params=None, data=data)
+        return data
+        
+
+    def push_block(self) :
+        raise NotImplementedError()
         
     #####
     # bin/json 

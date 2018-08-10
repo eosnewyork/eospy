@@ -1,0 +1,123 @@
+import base58
+import os
+import ecdsa
+import re
+from binascii import hexlify, unhexlify
+import utils
+    
+class EOSKey :
+    def __init__(self, private_str='') :
+        ''' '''
+        if private_str :
+            private_key, format, key_type = self._parse_key(private_str)
+            self._sk = ecdsa.SigningKey.from_string(unhexlify(private_key), curve=ecdsa.SECP256k1)
+        else :
+            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=create_entropy)
+        self._vk = self._sk.get_verifying_key()
+        
+    def _parse_key(self, private_str) :
+        ''' '''
+        match = re.search('^PVT_([A-Za-z0-9]+)_([A-Za-z0-9]+)$', private_str)
+        if not match :
+            # legacy WIF - format            
+            version_key = self._check_decode(private_str, 'sha256x2')
+            # ensure first 2 chars == 0x80
+            version = int(version_key[0:2],16)
+            if not version == 0x80 :
+                raise ValueError('Expected version 0x80, instead got {0}', version)
+            private_key = version_key[2:]
+            key_type = 'K1'
+            format = 'WIF'
+        else :
+            key_type, key_string = match.groups()
+            private_key = self._check_decode(key_string, key_type)
+            format = 'PVT'
+        return (private_key, format, key_type)
+
+    def _compress_pubkey(self) :
+        ''' '''
+        order = self._sk.curve.generator.order()
+        p = self._vk.pubkey.point
+        x_str = ecdsa.util.number_to_string(p.x(), order)
+        compressed = hexlify(bytes(chr(2 + (p.y() & 1))) + x_str)
+        return compressed
+
+    def _create_entropy(self) :
+        ''' '''
+        ba = bytearray(os.urandom(32))
+        seed = utils.sha256(ba)
+        return ecdsa.util.PRNG(seed)
+
+    def _check_encode(self, key_buffer, key_type=None) :
+        '''    '''
+        print('buffer_en: '+key_buffer)
+        if key_type == 'sha256x2' :
+            first_sha = utils.sha256(unhexlify(key_buffer))
+            chksum = utils.sha256(unhexlify(first_sha))[:8]
+            print('chksum: '+ chksum)
+            return base58.b58encode(unhexlify(key_buffer+chksum))
+        else :
+            check = key_buffer
+            if key_type :
+                check += hexlify(key_type)
+            chksum = utils.ripemd160(check)[:8]
+            print('chksum: ' + chksum)
+            return base58.b58encode(unhexlify(check+chksum))
+   
+    def _check_decode(self, key_string, key_type=None) :
+        '''    '''
+        buffer = hexlify(base58.b58decode(key_string))
+        print('buffer_de: '+buffer)
+        chksum = buffer[-8:]
+        key = buffer[:-8]
+        if key_type == 'sha256x2' :
+            # legacy
+            first_sha = utils.sha256(unhexlify(key))
+            newChk = utils.sha256(unhexlify(first_sha))[:8]
+        else :
+            check = key
+            if key_type :
+                check += hexlify(key_type)
+            newChk = utils.ripemd160(unhexlify(check))[:8]
+            print('newchk: ' + newChk)
+        if chksum != newChk :
+            raise ValueError('checksums do not match: {0} != {1}'.format(chksum, newChk))
+        return key
+
+    def sig_digest(self, payload, chain_id=None, context_free_data=None) :
+        ''' '''
+        buf = ''
+        if chain_id :
+            buf += chain_id
+        else :
+            buf = bytearray(32)
+        # already a bytearray
+        buf += payload
+        if context_free_data :
+            buf += utils.sha256(context_free_data)
+        else :
+            # empty buffer
+            buf += bytearray(32)
+
+        print('buf: '+hexlify(buf))
+        return utils.sha256(buf)
+        
+    def to_public(self) :
+        ''' '''
+        cmp = self._compress_pubkey()
+        return 'EOS' + self._check_encode(cmp)
+        
+    def to_wif(self) :
+        ''' '''
+        pri_key = '80' + hexlify(self._sk.to_string())
+        return self._check_encode(pri_key, 'sha256x2')
+
+    def sign(self, buf) :
+        ''' '''
+        signature = self._sk.sign(buf)
+        return 'SIG_K1_' + self._check_encode(hexlify(signature), 'K1')
+
+    def verify(self, buf, sig_digest) :
+        ''' '''
+        decoded = self._check_decode(buf.strip('SIG_K1_'))
+        return self._vk.verify(decoded, sig_digest)

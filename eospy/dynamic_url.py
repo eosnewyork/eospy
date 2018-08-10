@@ -34,8 +34,11 @@ class DynamicUrl :
         r.raise_for_status()
         return r.json()
 
-    def post_url(self, url, params=None, json=None) :
+    def post_url(self, url, params=None, json=None, data=None) :
         # post request
-        r = requests.post(url,params=params, json=json)
-        r.raise_for_status()
+        r = requests.post(url,params=params, json=json, data=data)
+        try :
+            r.raise_for_status()
+        except :
+            raise requests.exceptions.HTTPError('Error: {}'.format(r.json()))
         return r.json()
