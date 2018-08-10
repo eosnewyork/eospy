@@ -1,6 +1,9 @@
 # eospy library
 
 This library is still a work in progress but currently has the ability to perform all `cleos get` functions without compiling the code.
+
+The library now supports signing transactions. This is the first iteration and is very rough.
+
 The cleos commands currently implemented.
 ```
 Usage: /usr/local/bin/cleos get SUBCOMMAND
