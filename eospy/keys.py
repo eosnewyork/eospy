@@ -15,7 +15,7 @@ class EOSKey :
             private_key, format, key_type = self._parse_key(private_str)
             self._sk = ecdsa.SigningKey.from_string(unhexlify(private_key), curve=ecdsa.SECP256k1)
         else :
-            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=create_entropy)
+            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=self._create_entropy)
         self._vk = self._sk.get_verifying_key()
 
     def __str__(self) :
@@ -83,8 +83,9 @@ class EOSKey :
         return key
 
 
-    def _recover_public_key(self, digest, signature, i) :
+    def _recover_key(self, digest, signature, i) :
         ''' Recover the public key from the sig
+            http://www.secg.org/sec1-v2.pdf
         '''
         curve = ecdsa.SECP256k1.curve
         G = ecdsa.SECP256k1.generator
@@ -111,7 +112,7 @@ class EOSKey :
             of the public key from the signature
         '''
         for i in range(0,4) :
-            p = self._recover_public_key(digest, signature, i)
+            p = self._recover_key(digest, signature, i)
             if (p.to_string() == self._vk.to_string() ) :
                 return i
 
@@ -186,6 +187,6 @@ class EOSKey :
         # use sig
         sig = decoded_sig[2:]
         # verify sig
-        p = self._recover_public_key(unhexlify(digest), unhexlify(sig), recover_param)
+        p = self._recover_key(unhexlify(digest), unhexlify(sig), recover_param)
         return p.verify_digest(unhexlify(sig), unhexlify(digest), sigdecode=ecdsa.util.sigdecode_string)
         
