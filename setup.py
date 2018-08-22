@@ -3,7 +3,7 @@ import os
 
 setup(name='eospy',
       #version=os.getenv('BUILD_VERSION', 'DEV'),
-      version='1.1.0',
+      version='1.1.1',
       description='Python library for the eosio REST API',
       author='deck',
       author_email='deck@eosnewyork.io',
@@ -14,7 +14,8 @@ setup(name='eospy',
           'requests',
           'base58',
           'ecdsa',
-          'colander'
+          'colander',
+          'pytz'
       ],
       entry_points = {
           'console_scripts' :[
