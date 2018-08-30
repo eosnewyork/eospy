@@ -1,9 +1,9 @@
-import buffer
-import schema
+from .buffer import EOSBuffer 
+from .schema import ActionSchema, PermissionLevelSchema, ChainInfoSchema, BlockInfoSchema, TransactionSchema
 #import utils
 import datetime as dt
 import pytz
-import utils
+from .utils import sha256
 import json
 
 # json encoder
@@ -70,7 +70,7 @@ class BaseObject(object) :
         
     def _encode_buffer(self, value) :
         ''' '''
-        return buffer.EOSBuffer(value).encode()
+        return EOSBuffer(value).encode()
 
     def _create_obj_array(self, arr, class_type) :
         ''' '''
@@ -82,7 +82,7 @@ class BaseObject(object) :
 class Action(BaseObject) :
     def __init__(self, d) :
         ''' '''
-        self._validator = schema.ActionSchema()
+        self._validator = ActionSchema()
         super(Action, self).__init__(d)
         # setup permissions
         self.authorization = self._create_obj_array(self.authorization, Authorization)
@@ -130,7 +130,7 @@ class Authorization(BaseObject):
     def __init__(self, d) :
         ''' '''
         # create validator
-        self._validator = schema.PermissionLevelSchema()
+        self._validator = PermissionLevelSchema()
         super(Authorization, self).__init__(d)
 
     def encode(self) :
@@ -142,13 +142,13 @@ class Authorization(BaseObject):
 class ChainInfo(BaseObject) :
     def __init__(self, d) :
         ''' '''
-        self._validator = schema.ChainInfoSchema()
+        self._validator = ChainInfoSchema()
         super(ChainInfo, self).__init__(d)
 
 class BlockInfo(BaseObject) :
     def __init__(self, d) :
         ''' '''
-        self._validator = schema.BlockInfoSchema()
+        self._validator = BlockInfoSchema()
         super(BlockInfo, self).__init__(d)
 
 
@@ -163,7 +163,7 @@ class Transaction(BaseObject) :
         if 'ref_block_prefix' not in d :
             d['ref_block_prefix'] = lib_info['ref_block_prefix']
         # validate
-        self._validator = schema.TransactionSchema()
+        self._validator = TransactionSchema()
         super(Transaction, self).__init__(d)
         # parse actions
         self.actions = self._create_obj_array(self.actions, Action)
@@ -192,4 +192,4 @@ class Transaction(BaseObject) :
         return bytearray.fromhex(hdr_buf + context_actions + actions + trans_exts)
         
     def get_id(self) :
-        return utils.sha256(self.encode())
+        return sha256(self.encode())

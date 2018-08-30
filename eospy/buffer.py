@@ -2,8 +2,8 @@
 
 import binascii
 import struct
-import utils
-import types
+from .utils import string_to_name, int_to_hex
+from .types import Name, AccountName, PermissionName, ActionName, TableName, ScopeName, Byte, UInt16, UInt32, VarUInt, Authorization, Action
 
 def convert_little_endian(buf, format='q') :
     ''' '''
@@ -25,7 +25,7 @@ class EOSBuffer :
 
     def _write_name(self, w_str) :
         ''' '''
-        val = utils.string_to_name(w_str)
+        val = string_to_name(w_str)
         le = convert_little_endian(val, 'Q')
         return binascii.hexlify(le)
 
@@ -39,36 +39,36 @@ class EOSBuffer :
     def encode(self, val=None) :
         if not val :
             val = self._value
-        if (isinstance(val, types.Name) or
-           isinstance(val, types.AccountName) or
-           isinstance(val, types.PermissionName) or
-           isinstance(val, types.ActionName) or
-           isinstance(val, types.TableName) or
-           isinstance(val, types.ScopeName) ) :
+        if (isinstance(val, Name) or
+           isinstance(val, AccountName) or
+           isinstance(val, PermissionName) or
+           isinstance(val, ActionName) or
+           isinstance(val, TableName) or
+           isinstance(val, ScopeName) ) :
             val = self._write_name(val)
             return val
         elif(isinstance(val, str)) :
             return self._write_str(val)
-        elif(isinstance(val, types.Byte) or
+        elif(isinstance(val, Byte) or
              isinstance(val, bool)) :
             #return self._write_number(val, '?')
-            return utils.int_to_hex(val)
-        elif(isinstance(val, types.UInt16)) :
+            return int_to_hex(val)
+        elif(isinstance(val, UInt16)) :
             return self._write_number(val, 'H')
-        elif(isinstance(val,types.UInt32)) :
+        elif(isinstance(val,UInt32)) :
             return self._write_number(val, 'I')
-        elif(isinstance(val,types.VarUInt)) :
+        elif(isinstance(val,VarUInt)) :
             # temp encoding
             return self._write_varuint(val)
         elif(isinstance(val, int) or
              isinstance(val, long)) :
             return self._write_number(val, 'l')
-        elif(isinstance(val, types.Authorization)) :
+        elif(isinstance(val, Authorization)) :
             return val.encode()
-        elif(isinstance(val, types.Action)) :
+        elif(isinstance(val, Action)) :
             return val.encode()
         elif(isinstance(val, list)) :
-            buf = self._write_varuint(types.VarUInt(len(val))) 
+            buf = self._write_varuint(VarUInt(len(val))) 
             for item in val :
                 e_item = self.encode(item)
                 buf = '{}{}'.format(buf, e_item)
