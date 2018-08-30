@@ -87,7 +87,7 @@ def char_to_symbol(c) :
 def string_to_name(s) :
     ''' '''
     i = 0
-    name = 0L
+    name = 0
     while i < len(s) :
         sym = char_to_symbol(s[i])
         name += (char_to_symbol(s[i]) & 0x1F) << (64-5 * (i + 1))
