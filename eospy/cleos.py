@@ -3,9 +3,9 @@
 #
 
 from .dynamic_url import DynamicUrl
-from .keys import EOSKey
-import utils
-import types
+from .keys import EOSKey, check_wif
+from .utils import sig_digest
+from .types import EOSEncoder, Transaction 
 import json
 
 class Cleos :
@@ -142,7 +142,7 @@ class Cleos :
     def push_transaction(self, transaction, keys, broadcast=True, compression='none') :
         ''' '''
         chain_info,lib_info = self.get_chain_lib_info()
-        trx = types.Transaction(transaction, chain_info, lib_info)
+        trx = Transaction(transaction, chain_info, lib_info)
         encoded = trx.encode()
         digest = utils.sig_digest(trx.encode(), chain_info['chain_id'])
         # sign the transaction
@@ -165,7 +165,7 @@ class Cleos :
                 'transaction' : trx.__dict__,
                 'signatures' : signatures
         }
-        data = json.dumps(final_trx, cls=types.EOSEncoder)
+        data = json.dumps(final_trx, cls=EOSEncoder)
         if broadcast :
             return self.post('chain.push_transaction', params=None, data=data)
         return data
