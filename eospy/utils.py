@@ -2,16 +2,6 @@ from binascii import hexlify, unhexlify
 import struct
 import hashlib
 import sys
-import keys
-
-def check_wif(key) :
-    if isinstance(key, str) :
-        try :
-            k = keys.EOSKey(key)
-            return True
-        except :
-            pass
-    return False
 
 def sha256(data):
     ''' '''

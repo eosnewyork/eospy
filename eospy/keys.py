@@ -3,10 +3,20 @@ import os
 import ecdsa
 import re
 from binascii import hexlify, unhexlify
-import utils
+from .utils import sha256, ripemd160, str_to_hex, hex_to_int
 import hashlib
 import time
 import struct
+
+def check_wif(key) :
+    if isinstance(key, str) :
+        try :
+            k = keys.EOSKey(key)
+            return True
+        except :
+            pass
+    return False
+
 
 class EOSKey :
     def __init__(self, private_str='') :
@@ -43,19 +53,19 @@ class EOSKey :
     def _create_entropy(self) :
         ''' '''
         ba = bytearray(os.urandom(32))
-        seed = utils.sha256(ba)
+        seed = sha256(ba)
         return ecdsa.util.PRNG(seed)
 
     def _check_encode(self, key_buffer, key_type=None) :
         '''    '''
         check = key_buffer
         if key_type == 'sha256x2' :
-            first_sha = utils.sha256(unhexlify(check))
-            chksum = utils.sha256(unhexlify(first_sha))[:8]
+            first_sha = sha256(unhexlify(check))
+            chksum = sha256(unhexlify(first_sha))[:8]
         else :
             if key_type :
                 check += hexlify(key_type)
-            chksum = utils.ripemd160(unhexlify(check))[:8]
+            chksum = ripemd160(unhexlify(check))[:8]
         #print('chksum: '+chksum)
         #print('encoded: '+key_buffer+chksum)
         return base58.b58encode(unhexlify(key_buffer+chksum))
@@ -70,13 +80,13 @@ class EOSKey :
         #print('chksum: '+chksum)
         if key_type == 'sha256x2' :
             # legacy
-            first_sha = utils.sha256(unhexlify(key))
-            newChk = utils.sha256(unhexlify(first_sha))[:8]
+            first_sha = sha256(unhexlify(key))
+            newChk = sha256(unhexlify(first_sha))[:8]
         else :
             check = key
             if key_type :
                 check += hexlify(key_type)
-            newChk = utils.ripemd160(unhexlify(check))[:8]
+            newChk = ripemd160(unhexlify(check))[:8]
         #print('newChk: '+newChk)
         if chksum != newChk :
             raise ValueError('checksums do not match: {0} != {1}'.format(chksum, newChk))
@@ -147,7 +157,7 @@ class EOSKey :
             k = ecdsa.rfc6979.generate_k( self._sk.curve.generator.order(),
                                           self._sk.privkey.secret_multiplier,
                                           hashlib.sha256,
-                                          utils.sha256(digest + struct.pack('d', time.time())) # use time to randomize
+                                          sha256(digest + struct.pack('d', time.time())) # use time to randomize
                                           )
             # sign the message
             sigder = self._sk.sign_digest(digest, sigencode=ecdsa.util.sigencode_der, k=k)
@@ -157,8 +167,8 @@ class EOSKey :
             sig = ecdsa.util.sigencode_string(r, s, self._sk.curve.generator.order())
 
             # ensure signature is canonical
-            lenR = utils.str_to_hex(sigder[3])
-            lenS = utils.str_to_hex(sigder[5 + lenR])
+            lenR = str_to_hex(sigder[3])
+            lenS = str_to_hex(sigder[5 + lenR])
             if lenR is 32 and lenS is 32 :
                 # derive recover parameter
                 i = self._recovery_pubkey_param(digest, sig)
@@ -183,7 +193,7 @@ class EOSKey :
 
         decoded_sig = self._check_decode(encoded_sig[3:], curvePre)
         # first 2 bytes are recover param
-        recover_param = utils.hex_to_int(decoded_sig[:2]) - 4 - 27
+        recover_param = hex_to_int(decoded_sig[:2]) - 4 - 27
         # use sig
         sig = decoded_sig[2:]
         # verify sig
