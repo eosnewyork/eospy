@@ -18,6 +18,12 @@ def check_wif(key) :
             pass
     return False
 
+def create_entropy() :
+    ''' '''
+    ba = bytearray(os.urandom(32))
+    seed = sha256(ba)
+    return ecdsa.util.PRNG(seed)
+
 class EOSKey :
     def __init__(self, private_str='') :
         ''' '''
@@ -25,7 +31,7 @@ class EOSKey :
             private_key, format, key_type = self._parse_key(private_str)
             self._sk = ecdsa.SigningKey.from_string(unhexlify(private_key), curve=ecdsa.SECP256k1)
         else :
-            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=self._create_entropy)
+            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=create_entropy)
         self._vk = self._sk.get_verifying_key()
 
     def __str__(self) :
@@ -49,12 +55,6 @@ class EOSKey :
             private_key = self._check_decode(key_string, key_type)
             format = 'PVT'
         return (private_key, format, key_type)
-
-    def _create_entropy(self) :
-        ''' '''
-        ba = bytearray(os.urandom(32))
-        seed = sha256(ba)
-        return ecdsa.util.PRNG(seed)
 
     def _check_encode(self, key_buffer, key_type=None) :
         '''    '''
