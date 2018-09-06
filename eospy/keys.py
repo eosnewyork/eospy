@@ -11,12 +11,12 @@ import struct
 def check_wif(key) :
     if isinstance(key, str) :
         try :
-            k = keys.EOSKey(key)
+            EOSKey(key)
             return True
-        except :
+        except Exception as ex:
+            #print(ex)
             pass
     return False
-
 
 class EOSKey :
     def __init__(self, private_str='') :

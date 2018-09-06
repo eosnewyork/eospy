@@ -5,6 +5,7 @@ import pytz
 from .utils import sha256, string_to_name, int_to_hex
 import json
 import binascii
+import struct
 
 def convert_little_endian(buf, format='q') :
     ''' '''

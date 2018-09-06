@@ -144,14 +144,14 @@ class Cleos :
         chain_info,lib_info = self.get_chain_lib_info()
         trx = Transaction(transaction, chain_info, lib_info)
         encoded = trx.encode()
-        digest = utils.sig_digest(trx.encode(), chain_info['chain_id'])
+        digest = sig_digest(trx.encode(), chain_info['chain_id'])
         # sign the transaction
         signatures = []
         if not isinstance(keys, list) :
             keys = [keys]
         for key in keys :
             print(key)
-            if utils.check_wif(key) :
+            if check_wif(key) :
                 k = EOSKey(key)
             elif isinstance(key, EOSKey) :
                 k = key

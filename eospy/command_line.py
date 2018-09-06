@@ -5,7 +5,7 @@ import pprint
 def cleos():
     parser = argparse.ArgumentParser(description='Command Line Interface to EOSIO via python')
     parser.add_argument('--api-version','-v', type=str, default='v1', action='store', dest='api_version')
-    parser.add_argument('--url', '-u', type=str, action='store', required=True, dest='url')
+    parser.add_argument('--url', '-u', type=str, action='store', default='https://api.eosnewyork.io', dest='url')
     subparsers = parser.add_subparsers(dest='subparser')
     # get
     get_parser = subparsers.add_parser('get')
