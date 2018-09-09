@@ -1,4 +1,3 @@
-from binascii import hexlify, unhexlify
 import struct
 import hashlib
 import sys
