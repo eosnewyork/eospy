@@ -2,7 +2,7 @@
 
 This library is still a work in progress but currently has the ability to perform all `cleos get` functions without compiling the code.
 
-The library now supports signing transactions/key creation for python 2. This is the first iteration and is very rough. The key creation has not been tested fully and should be used at your own risk.
+The library now supports signing transactions/key creation for both python 2.7 and 3.x. This is the first iteration and is very rough. The key creation has not been tested fully and should be used at your own risk.
 
 The cleos commands currently implemented.
 ```

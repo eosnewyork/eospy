@@ -6,6 +6,7 @@ from .utils import sha256, string_to_name, int_to_hex
 import json
 import binascii
 import struct
+import six
 
 def convert_little_endian(buf, format='q') :
     ''' '''
@@ -25,7 +26,6 @@ class EOSEncoder(json.JSONEncoder) :
         if isinstance(o, dt.datetime) :
             return o.isoformat()
 
-
 class Name(str) : pass
 class AccountName(Name) : pass
 class PermissionName(Name) : pass
@@ -37,6 +37,9 @@ class Byte(int) : pass
 class UInt16(int) : pass
 class UInt32(int) : pass
 class UInt64(int) : pass
+
+if six.PY3 :
+    class long(int) : pass
 
 class VarUInt :
     def __init__(self, val):
@@ -211,20 +214,20 @@ class EOSBuffer :
     def _write_number(self, val, format='q') :
         ''' '''
         le = convert_little_endian(val, format)
-        return binascii.hexlify(le)
+        return binascii.hexlify(le).decode()
 
     def _write_name(self, w_str) :
         ''' '''
         val = string_to_name(w_str)
         le = convert_little_endian(val, 'Q')
-        return binascii.hexlify(le)
+        return binascii.hexlify(le).decode()
 
     def _write_str(self, w_str) :
-        return binascii.hexlify(chr(len(w_str)) +w_str)
+        return binascii.hexlify(chr(len(w_str)) +w_str).decode()
 
     def _write_varuint(self, vuint) :
         buf = vuint.encode()
-        return binascii.hexlify(buf)
+        return binascii.hexlify(buf).decode()
         
     def encode(self, val=None) :
         if not val :
