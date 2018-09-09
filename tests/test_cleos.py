@@ -60,11 +60,11 @@ class TestCleos :
         table = self.ce.get_table('eosio', 'eosio', 'producer')
 
     def test_get_currency_balance(self) :
-        bal = self.ce.get_currency_balance('eosio.token', 'eosio', 'EOS')
+        bal = self.ce.get_currency_balance('eosio', 'eosio.token', 'EOS')
 
     @raises(requests.exceptions.HTTPError)
     def test_get_currency_balance_fail(self) :
-        bal = self.ce.get_currency_balance('eosio.token', 'eosio', 'SYS')
+        bal = self.ce.get_currency_balance('eosio', 'eosio', 'SYS')
 
     def test_json_to_bin(self) :
         bin = self.ce.abi_json_to_bin('eosio.token', 'transfer', self.json_to_bin)
