@@ -1,6 +1,7 @@
+from binascii import hexlify
 import struct
 import hashlib
-import sys
+import six
 
 def sha256(data):
     ''' '''
@@ -36,7 +37,8 @@ def hex_to_int(i) :
     return int(i, 16)
     
 def str_to_hex(c) :
-    return int(c.encode('hex'),16)
+    hex_data = hexlify(bytearray(c, 'ascii')).decode()
+    return int(hex_data,16)
 
 def char_subtraction(a, b, add) :
     x = str_to_hex(a)
@@ -100,7 +102,7 @@ def name_to_string(n) :
     pass
 
 
-if sys.version > '3' :
+if six.PY3 :
     def _byte(b) :
         return bytes((b,))
 else :

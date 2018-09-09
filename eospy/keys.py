@@ -14,7 +14,7 @@ def check_wif(key) :
             EOSKey(key)
             return True
         except Exception as ex:
-            #print(ex)
+            print(ex)
             pass
     return False
 
@@ -25,7 +25,8 @@ class EOSKey :
             private_key, format, key_type = self._parse_key(private_str)
             self._sk = ecdsa.SigningKey.from_string(unhexlify(private_key), curve=ecdsa.SECP256k1)
         else :
-            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=self._create_entropy())
+            prng = self._create_entropy()
+            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=ent)
         self._vk = self._sk.get_verifying_key()
 
     def __str__(self) :
@@ -58,26 +59,23 @@ class EOSKey :
 
     def _check_encode(self, key_buffer, key_type=None) :
         '''    '''
+        if isinstance(key_buffer, bytes) :
+            key_buffer = key_buffer.decode()
         check = key_buffer
         if key_type == 'sha256x2' :
             first_sha = sha256(unhexlify(check))
             chksum = sha256(unhexlify(first_sha))[:8]
         else :
             if key_type :
-                check += hexlify(key_type)
+                check += hexlify(bytearray(key_type,'utf-8')).decode()
             chksum = ripemd160(unhexlify(check))[:8]
-        #print('chksum: '+chksum)
-        #print('encoded: '+key_buffer+chksum)
         return base58.b58encode(unhexlify(key_buffer+chksum))
    
     def _check_decode(self, key_string, key_type=None) :
         '''    '''
-        buffer = hexlify(base58.b58decode(key_string))
+        buffer = hexlify(base58.b58decode(key_string)).decode()
         chksum = buffer[-8:]
         key = buffer[:-8]
-        #print('buffer: '+buffer)
-        #print('key: '+key)
-        #print('chksum: '+chksum)
         if key_type == 'sha256x2' :
             # legacy
             first_sha = sha256(unhexlify(key))
@@ -85,7 +83,7 @@ class EOSKey :
         else :
             check = key
             if key_type :
-                check += hexlify(key_type)
+                check += hexlify(bytearray(key_type, 'utf-8')).decode()
             newChk = ripemd160(unhexlify(check))[:8]
         #print('newChk: '+newChk)
         if chksum != newChk :
@@ -131,18 +129,19 @@ class EOSKey :
         order = self._sk.curve.generator.order()
         p = self._vk.pubkey.point
         x_str = ecdsa.util.number_to_string(p.x(), order)
-        compressed = hexlify(bytes(chr(2 + (p.y() & 1))) + x_str)
+        hex_data = bytearray(chr(2 + (p.y() & 1)), 'utf-8')
+        compressed = hexlify(hex_data + x_str).decode()
         return compressed
                 
     def to_public(self) :
         ''' '''
         cmp = self._compress_pubkey()
-        return 'EOS' + self._check_encode(cmp)
+        return 'EOS' + self._check_encode(cmp).decode()
         
     def to_wif(self) :
         ''' '''
-        pri_key = '80' + hexlify(self._sk.to_string())
-        return self._check_encode(pri_key, 'sha256x2')
+        pri_key = '80' + hexlify(self._sk.to_string()).decode()
+        return self._check_encode(pri_key, 'sha256x2').decode()
 
     def sign(self, digest) :
         ''' '''
@@ -157,7 +156,7 @@ class EOSKey :
             k = ecdsa.rfc6979.generate_k( self._sk.curve.generator.order(),
                                           self._sk.privkey.secret_multiplier,
                                           hashlib.sha256,
-                                          sha256(digest + struct.pack('d', time.time())) # use time to randomize
+                                          bytearray(sha256(digest + struct.pack('d', time.time())), 'utf-8') # use time to randomize
                                           )
             # sign the message
             sigder = self._sk.sign_digest(digest, sigencode=ecdsa.util.sigencode_der, k=k)
@@ -167,8 +166,14 @@ class EOSKey :
             sig = ecdsa.util.sigencode_string(r, s, self._sk.curve.generator.order())
 
             # ensure signature is canonical
-            lenR = str_to_hex(sigder[3])
-            lenS = str_to_hex(sigder[5 + lenR])
+            if isinstance(sigder[5],int) :
+                lenR = sigder[3]
+            else :
+                lenR =  str_to_hex(sigder[3])
+            if isinstance(sigder[5 + lenR], int) :
+                lenS = sigder[5 + lenR]
+            else :
+                lenS = str_to_hex(sigder[5 + lenR])
             if lenR is 32 and lenS is 32 :
                 # derive recover parameter
                 i = self._recovery_pubkey_param(digest, sig)
@@ -180,7 +185,7 @@ class EOSKey :
         # pack
         sigstr = struct.pack('<B', i) + sig
         # encode
-        return 'SIG_K1_' + self._check_encode(hexlify(sigstr), 'K1')
+        return 'SIG_K1_' + self._check_encode(hexlify(sigstr), 'K1').decode()
 
     def verify(self, encoded_sig, digest) :
         ''' '''
