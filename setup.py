@@ -15,7 +15,8 @@ setup(name='eospy',
           'base58',
           'ecdsa',
           'colander',
-          'pytz'
+          'pytz',
+          'six'
       ],
       entry_points = {
           'console_scripts' :[
