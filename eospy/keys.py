@@ -26,7 +26,7 @@ class EOSKey :
             self._sk = ecdsa.SigningKey.from_string(unhexlify(private_key), curve=ecdsa.SECP256k1)
         else :
             prng = self._create_entropy()
-            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=ent)
+            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=prng)
         self._vk = self._sk.get_verifying_key()
 
     def __str__(self) :
