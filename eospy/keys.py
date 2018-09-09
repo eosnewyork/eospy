@@ -14,7 +14,6 @@ def check_wif(key) :
             EOSKey(key)
             return True
         except Exception as ex:
-            print(ex)
             pass
     return False
 
