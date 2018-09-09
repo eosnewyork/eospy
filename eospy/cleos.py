@@ -71,9 +71,9 @@ class Cleos :
         ''' '''
         return self.post('chain.get_account', params=None, json={'account_name' : acct_name})
 
-    def get_code(self, acct_name, code_as_wasm=False) :
+    def get_code(self, acct_name) :
         ''' '''
-        return self.post('chain.get_code', params=None, json={'account_name':acct_name, 'code_as_wasm':code_as_wasm})
+        return self.post('chain.get_code', params=None, json={'account_name':acct_name})
     
     def get_accounts(self, public_key) :
         ''' '''
