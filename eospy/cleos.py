@@ -143,7 +143,7 @@ class Cleos :
         ''' '''
         chain_info,lib_info = self.get_chain_lib_info()
         trx = Transaction(transaction, chain_info, lib_info)
-        encoded = trx.encode()
+        #encoded = trx.encode()
         digest = sig_digest(trx.encode(), chain_info['chain_id'])
         # sign the transaction
         signatures = []
@@ -171,7 +171,7 @@ class Cleos :
         
 
     def push_block(self) :
-        raise NotImplementedError()
+        raise NotImplementedError
         
     #####
     # bin/json 
@@ -196,7 +196,6 @@ class Cleos :
         k = EOSKey()
         return k
         
-        
     #####
     # multisig
     #####
@@ -210,9 +209,70 @@ class Cleos :
     def vote_producers(self, voter, proxy, producers) :
         return self.get('chain.abi_json_to_bin', params=None,json={"voter":voter, "proxy":proxy,"producers":producers})
 
-    def create_account(self, creator, acct_name, owner_key, active_key, stake, cpu, ramkb) :
-        ram_json = {'code':'eosio','action':'buy', 'args':{'payer':'eosio', 'receiver':acct_name, 'bytes': ramkb*1024} }
-        ram_ret = self.post('chain.abi_json_to_bin',params=None, json=json)
+
+    def create_account(self, creator, creator_privkey, acct_name, owner_key, 
+                       active_key='', stake_net='1.0000 EOS', stake_cpu='1.0000 EOS', ramkb=8, permission='active', 
+                       transfer=False, broadcast=True) :
+        ''' '''
+
+        # there is an issue with the abi_json_to_bin RPC that is causing issues so for now throw an exception
+        # for more information see https://github.com/EOSIO/eos/issues/5629
+        raise NotImplementedError('Function is not currently implemented due to https://github.com/EOSIO/eos/issues/5629')
+
+        # check account doesn't exist
+        try : 
+            x = self.get_account(acct_name)
+            #print('{} already exists.'.format(acct_name))
+            raise ValueError('{} already exists.'.format(acct_name))
+        except: 
+            pass
+        if not active_key :
+            active_key = owner_key
+        # create newaccount trx
+        print({'creator' : creator, 'name' : acct_name, 'owner': owner_key, 'active':active_key})
+        newaccount_data = self.abi_json_to_bin('eosio', 'newaccount',{'creator' : creator, 'name' : acct_name, 'owner': owner_key, 'active':active_key})
+        print(newaccount_data)
+        newaccount_json = {
+            'account' : 'eosio',
+            'name' : 'newaccount',
+            'authorization' : [
+            {
+                'actor' : creator,
+                'permission' : permission
+            } ],
+            'data' : newaccount_data['binargs']
+        }
+        # create buyrambytes trx
+        buyram_data = self.abi_json_to_bin('eosio', 'buyrambytes', {'payer':creator, 'receiver':acct_name, 'bytes': ramkb*1024})
+        buyram_json = {
+            'account' : 'eosio',
+            'name' : 'buyrambytes',
+            'authorization' : [
+                {
+                    'actor' : creator,
+                    'permission' : permission
+                } ],
+            'data' : buyram_data['binargs']
+        }
+        # create delegatebw
+        delegate_data = self.abi_json_to_bin('eosio', 'delegatebw', 
+            {'from': creator, 'receiver': acct_name, 'stake_net_quantity':stake_net, 'stake_cpu_quantity': stake_cpu, 'transfer': transfer })
+        delegate_json = {
+            'account' : 'eosio',
+            'name' : 'delegatebw',
+            'authorization' : [
+                {
+                    'actor' : creator,
+                    'permission' : permission
+                } ],
+            'data' : delegate_data['binargs']
+        }
+
+        trx = {"actions":
+            [newaccount_json, buyram_json, delegate_json]
+        }
+        # push transaction
+        return self.push_transaction(trx, creator_privkey, broadcast=broadcast)
 
     def register_producer(self) :
         json = {}
