@@ -150,7 +150,6 @@ class Cleos :
         if not isinstance(keys, list) :
             keys = [keys]
         for key in keys :
-            print(key)
             if check_wif(key) :
                 k = EOSKey(key)
             elif isinstance(key, EOSKey) :
