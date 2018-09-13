@@ -21,9 +21,11 @@ Subcommands:
     servants                    Retrieve accounts which are servants of a given account
     transaction                 Retrieve a transaction from the blockchain
     actions                     Retrieve all actions with specific account name referenced in authorization or receiver
+  system
+    newaccount                  Create an account, buy ram, stake for bandwidth for the account
 ```
 
-This library is very much a work in progress however it has enough implemented to validate a chain.
+This library is very much a work in progress.
 
 ## Installation
 

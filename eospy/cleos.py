@@ -215,13 +215,9 @@ class Cleos :
                        transfer=False, broadcast=True) :
         ''' '''
 
-        # there is an issue with the abi_json_to_bin RPC that is causing issues so for now throw an exception
-        # for more information see https://github.com/EOSIO/eos/issues/5629
-        raise NotImplementedError('Function is not currently implemented due to https://github.com/EOSIO/eos/issues/5629')
-
         # check account doesn't exist
         try : 
-            x = self.get_account(acct_name)
+            self.get_account(acct_name)
             #print('{} already exists.'.format(acct_name))
             raise ValueError('{} already exists.'.format(acct_name))
         except: 
@@ -229,8 +225,32 @@ class Cleos :
         if not active_key :
             active_key = owner_key
         # create newaccount trx
-        print({'creator' : creator, 'name' : acct_name, 'owner': owner_key, 'active':active_key})
-        newaccount_data = self.abi_json_to_bin('eosio', 'newaccount',{'creator' : creator, 'name' : acct_name, 'owner': owner_key, 'active':active_key})
+        owner_auth = {
+                "threshold": 1,
+                "keys": [{
+                    "key": owner_key,
+                    "weight": 1
+                }],
+                "accounts": [],
+                "waits": []
+            }
+        active_auth ={
+                "threshold": 1,
+                "keys": [{
+                    "key": active_key,
+                    "weight": 1
+                } ],
+                "accounts": [],
+                "waits": []
+            }
+        print({
+                'creator' : creator, 
+                'name' : acct_name, 
+                'owner' : owner_auth, 
+                'active' : active_auth
+        })
+        
+        newaccount_data = self.abi_json_to_bin('eosio', 'newaccount',{'creator' : creator, 'name' : acct_name, 'owner': owner_auth, 'active':active_auth})
         print(newaccount_data)
         newaccount_json = {
             'account' : 'eosio',

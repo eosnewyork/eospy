@@ -61,6 +61,23 @@ def cleos():
     create_parser = subparsers.add_parser('create')
     create_subparsers = create_parser.add_subparsers(dest='create')
     key = create_subparsers.add_parser('key')
+    # system commands
+    system_parser = subparsers.add_parser('system')
+    system_subparsers = system_parser.add_subparsers(dest='system')
+    # account
+    newacct_parser = system_subparsers.add_parser('newaccount')
+    newacct_parser.add_argument('creator', type=str, action='store')
+    newacct_parser.add_argument('creator_key', type=str, action='store')
+    newacct_parser.add_argument('account', type=str, action='store')
+    newacct_parser.add_argument('owner', type=str, action='store')
+    newacct_parser.add_argument('--active','-a', type=str, action='store', dest='active')
+    newacct_parser.add_argument('--stake-net', type=str, action='store', default='1.0000 EOS', dest='stake_net')
+    newacct_parser.add_argument('--stake-cpu', type=str, action='store', default='1.0000 EOS', dest='stake_cpu')
+    newacct_parser.add_argument('--buy-ram-kbytes', type=int, action='store', default=8, dest='ramkb')
+    newacct_parser.add_argument('--permission','-p', type=str, action='store', default='active', dest='permission')
+    newacct_parser.add_argument('--transfer', action='store_true', default=False, dest='transfer')
+    newacct_parser.add_argument('--broadcast', action='store_false', default=True, dest='broadcast')
+    # process args
     args = parser.parse_args()
     # 
     # connect 
@@ -101,7 +118,13 @@ def cleos():
             k = ce.create_key()
             print('Private key:{}'.format(k.to_wif()))
             print('Public key: {}'.format(k.to_public()))
-    
+    elif args.subparser == 'system' :
+        if args.system == 'newaccount' :
+            resp = ce.create_account(args.creator, args.creator_key, args.account, args.owner, args.active, 
+                                     stake_net=args.stake_net, stake_cpu=args.stake_cpu, ramkb=args.ramkb, 
+                                     permission=args.permssion, transfer=args.transfer, broadcast=args.transfer)
+            pp.pprint(resp)
+
 def validate_chain():
     parser = argparse.ArgumentParser(description='validate the chain')
     parser.add_argument('--api-version', help='version of the api to connect to', type=str, default='v1', action='store', dest='api_version')
@@ -109,7 +132,7 @@ def validate_chain():
     parser.add_argument('--truncate', help='Used for testing only. Will only look at the <n> number of accounts', type=int, default=0, action='store', dest='truncate_num')
     parser.add_argument('--snapshot', help='snapshot file to checkout', type=str, action='store', dest='snapshot')
     parser.add_argument('--snapshot-hash', help='expected hash of the snapshot', type=str, action='store', dest='snapshot_hash')
-    parser.add_argument('--check-accounts', help='Whether to check the snapshot accounts',  action='store_true', dest='check_accts')
+    parser.add_argument('--check-accounts', help='Whether to check the snapshot accounts',  action='store_true', dest='check_acct')  
     parser.add_argument('--ignore-errors', help='Whether to run through the whole process or exit on first error',  action='store_true', dest='ignore_errors')
     parser.add_argument('--eosio-code', help='expected hash of the eosio system contract', type=str, action='store', dest='eosio_code')
     parser.add_argument('--token-code', help='expected hash of the eosio.token contract', type=str, action='store', dest='token_code')
