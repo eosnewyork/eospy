@@ -1,6 +1,9 @@
 import argparse
 from .cleos import Cleos
-import pprint
+import json
+
+def console_print(data):
+    print(json.dumps(data, indent=4))
 
 def cleos():
     parser = argparse.ArgumentParser(description='Command Line Interface to EOSIO via python')
@@ -82,37 +85,36 @@ def cleos():
     # 
     # connect 
     ce = Cleos(url=args.url, version=args.api_version)
-    #
-    pp = pprint.PrettyPrinter(indent=1)
+
     # run commands based on subparser
     if args.subparser == 'get' :
         if args.get == 'info' :
-            pp.pprint(ce.get_info())
+            console_print(ce.get_info())
         elif args.get == 'block' :
-            pp.pprint(ce.get_block(args.block))
+            console_print(ce.get_block(args.block))
         elif args.get == 'account' :
-            pp.pprint(ce.get_account(args.account))
+            console_print(ce.get_account(args.account))
         elif args.get == 'code' :
-            pp.pprint(ce.get_code(args.account))
+            console_print(ce.get_code(args.account))
         elif args.get == 'abi' :
-            pp.pprint(ce.get_abi(args.account))
+            console_print(ce.get_abi(args.account))
         elif args.get == 'table' :
             table = ce.get_table(code=args.code, scope=args.scope, table=args.table, table_key=args.table_key, lower_bound=args.lower_bound, upper_bound=args.upper_bound, limit=args.limit)
-            pp.pprint(table)
+            console_print(table)
         elif args.get == 'currency' :
             if args.type == 'balance' :
                 if args.account :
-                    pp.pprint(ce.get_currency_balance(args.account, code=args.code, symbol=args.symbol))
+                    console_print(ce.get_currency_balance(args.account, code=args.code, symbol=args.symbol))
                 else :
                     raise ValueError('--account is required')
             else :
-                pp.pprint(ce.get_currency(code=args.code, symbol=args.symbol))
+                console_print(ce.get_currency(code=args.code, symbol=args.symbol))
         elif args.get == 'accounts' :
-            pp.pprint(ce.get_accounts(args.key))
+            console_print(ce.get_accounts(args.key))
         elif args.get == 'transaction' :
-            pp.pprint(ce.get_transaction(args.transaction))
+            console_print(ce.get_transaction(args.transaction))
         elif args.get == 'actions' :
-            pp.pprint(ce.get_actions(args.account, pos=args.pos, offset=args.offset))
+            console_print(ce.get_actions(args.account, pos=args.pos, offset=args.offset))
     elif args.subparser == 'create' :
         if args.create == 'key' :
             k = ce.create_key()
@@ -123,7 +125,7 @@ def cleos():
             resp = ce.create_account(args.creator, args.creator_key, args.account, args.owner, args.active, 
                                      stake_net=args.stake_net, stake_cpu=args.stake_cpu, ramkb=args.ramkb, 
                                      permission=args.permssion, transfer=args.transfer, broadcast=args.transfer)
-            pp.pprint(resp)
+            console_print(resp)
 
 def validate_chain():
     parser = argparse.ArgumentParser(description='validate the chain')
