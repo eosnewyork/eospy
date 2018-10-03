@@ -14,7 +14,7 @@ def cleos():
     get_parser = subparsers.add_parser('get')
     get_subparsers = get_parser.add_subparsers(dest='get')
     # info
-    info_parser = get_subparsers.add_parser('info')
+    get_subparsers.add_parser('info')
     # block
     block_parser = get_subparsers.add_parser('block')
     #block_parser.add_argument('block', type=str)
@@ -60,10 +60,17 @@ def cleos():
     actions.add_argument('--account','-a', type=str, action='store', required=True, dest='account')
     actions.add_argument('--pos', type=int, action='store', default=-1, dest='pos')
     actions.add_argument('--offset', type=int, action='store', default=-20, dest='offset')
+    # bin2json
+    bin_json = get_subparsers.add_parser('bin2json')
+    bin_json.add_argument('--code','-c', type=str, action='store', required=True, dest='code')
+    bin_json.add_argument('--action','-a', type=str, action='store', required=True, dest='action')
+    bin_json.add_argument('--binargs','-b', type=str, action='store', required=True, dest='binargs')
+    # json2bin
     # create
     create_parser = subparsers.add_parser('create')
     create_subparsers = create_parser.add_subparsers(dest='create')
-    key = create_subparsers.add_parser('key')
+    # create EOS key
+    create_subparsers.add_parser('key')
     # system commands
     system_parser = subparsers.add_parser('system')
     system_subparsers = system_parser.add_subparsers(dest='system')
@@ -115,6 +122,8 @@ def cleos():
             console_print(ce.get_transaction(args.transaction))
         elif args.get == 'actions' :
             console_print(ce.get_actions(args.account, pos=args.pos, offset=args.offset))
+        elif args.get == 'bin2json' :
+            console_print(ce.abi_bin_to_json(args.code, args.action, args.binargs))
     elif args.subparser == 'create' :
         if args.create == 'key' :
             k = ce.create_key()

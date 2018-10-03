@@ -1,2 +1,5 @@
 *pyc
 *bak
+dist/
+build/
+eospy.egg-info
