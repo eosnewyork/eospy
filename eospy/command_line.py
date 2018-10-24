@@ -9,6 +9,7 @@ def cleos():
     parser = argparse.ArgumentParser(description='Command Line Interface to EOSIO via python')
     parser.add_argument('--api-version','-v', type=str, default='v1', action='store', dest='api_version')
     parser.add_argument('--url', '-u', type=str, action='store', default='https://api.eosnewyork.io', dest='url')
+    parser.add_argument('--time-out', type=int, action='store', default=30, dest='timeout')
     subparsers = parser.add_subparsers(dest='subparser')
     # get
     get_parser = subparsers.add_parser('get')
@@ -96,34 +97,34 @@ def cleos():
     # run commands based on subparser
     if args.subparser == 'get' :
         if args.get == 'info' :
-            console_print(ce.get_info())
+            console_print(ce.get_info(timeout=args.timeout))
         elif args.get == 'block' :
-            console_print(ce.get_block(args.block))
+            console_print(ce.get_block(args.block, timeout=args.timeout))
         elif args.get == 'account' :
-            console_print(ce.get_account(args.account))
+            console_print(ce.get_account(args.account, timeout=args.timeout))
         elif args.get == 'code' :
-            console_print(ce.get_code(args.account))
+            console_print(ce.get_code(args.account, timeout=args.timeout))
         elif args.get == 'abi' :
-            console_print(ce.get_abi(args.account))
+            console_print(ce.get_abi(args.account, timeout=args.timeout))
         elif args.get == 'table' :
-            table = ce.get_table(code=args.code, scope=args.scope, table=args.table, table_key=args.table_key, lower_bound=args.lower_bound, upper_bound=args.upper_bound, limit=args.limit)
+            table = ce.get_table(code=args.code, scope=args.scope, table=args.table, table_key=args.table_key, lower_bound=args.lower_bound, upper_bound=args.upper_bound, limit=args.limit, timeout=args.timeout)
             console_print(table)
         elif args.get == 'currency' :
             if args.type == 'balance' :
                 if args.account :
-                    console_print(ce.get_currency_balance(args.account, code=args.code, symbol=args.symbol))
+                    console_print(ce.get_currency_balance(args.account, code=args.code, symbol=args.symbol, timeout=args.timeout))
                 else :
                     raise ValueError('--account is required')
             else :
-                console_print(ce.get_currency(code=args.code, symbol=args.symbol))
+                console_print(ce.get_currency(code=args.code, symbol=args.symbol, timeout=args.timeout))
         elif args.get == 'accounts' :
-            console_print(ce.get_accounts(args.key))
+            console_print(ce.get_accounts(args.key, timeout=args.timeout))
         elif args.get == 'transaction' :
-            console_print(ce.get_transaction(args.transaction))
+            console_print(ce.get_transaction(args.transaction, timeout=args.timeout))
         elif args.get == 'actions' :
-            console_print(ce.get_actions(args.account, pos=args.pos, offset=args.offset))
+            console_print(ce.get_actions(args.account, pos=args.pos, offset=args.offset, timeout=args.timeout))
         elif args.get == 'bin2json' :
-            console_print(ce.abi_bin_to_json(args.code, args.action, args.binargs))
+            console_print(ce.abi_bin_to_json(args.code, args.action, args.binargs, timeout=args.timeout))
     elif args.subparser == 'create' :
         if args.create == 'key' :
             k = ce.create_key()
@@ -133,7 +134,8 @@ def cleos():
         if args.system == 'newaccount' :
             resp = ce.create_account(args.creator, args.creator_key, args.account, args.owner, args.active, 
                                      stake_net=args.stake_net, stake_cpu=args.stake_cpu, ramkb=args.ramkb, 
-                                     permission=args.permssion, transfer=args.transfer, broadcast=args.transfer)
+                                     permission=args.permssion, transfer=args.transfer, broadcast=args.transfer, 
+                                     timeout=args.timeout)
             console_print(resp)
 
 def validate_chain():

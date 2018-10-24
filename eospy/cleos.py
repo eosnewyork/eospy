@@ -53,93 +53,93 @@ class Cleos :
     #####
     # get methods
     #####
-    def get_info(self) :
+    def get_info(self, timeout=30) :
         ''' '''
-        return self.get('chain.get_info')
+        return self.get('chain.get_info', timeout=timeout)
 
-    def get_chain_lib_info(self) :
+    def get_chain_lib_info(self, timeout=30) :
         ''' '''
-        chain_info = self.get('chain.get_info')
-        lib_info = self.get_block(chain_info['last_irreversible_block_num'])
+        chain_info = self.get('chain.get_info', timeout=timeout)
+        lib_info = self.get_block(chain_info['last_irreversible_block_num'], timeout=timeout)
         return chain_info, lib_info
         
-    def get_block(self, block_num) :
+    def get_block(self, block_num, timeout=30) :
         ''' '''
-        return self.post('chain.get_block', params=None, json={'block_num_or_id' : block_num})
+        return self.post('chain.get_block', params=None, json={'block_num_or_id' : block_num}, timeout=timeout)
         
-    def get_account(self, acct_name) :
+    def get_account(self, acct_name, timeout=30) :
         ''' '''
-        return self.post('chain.get_account', params=None, json={'account_name' : acct_name})
+        return self.post('chain.get_account', params=None, json={'account_name' : acct_name}, timeout=timeout)
 
-    def get_code(self, acct_name, code_as_wasm=True) :
+    def get_code(self, acct_name, code_as_wasm=True, timeout=30) :
         ''' '''
-        return self.post('chain.get_code', params=None, json={'account_name':acct_name, 'code_as_wasm':code_as_wasm})
+        return self.post('chain.get_code', params=None, json={'account_name':acct_name, 'code_as_wasm':code_as_wasm}, timeout=timeout)
     
-    def get_accounts(self, public_key) :
+    def get_accounts(self, public_key, timeout=30) :
         ''' '''
-        return self.post('history.get_key_accounts', params=None, json={'public_key':public_key})
+        return self.post('history.get_key_accounts', params=None, json={'public_key':public_key}, timeout=timeout)
 
-    def get_abi(self, acct_name) :
+    def get_abi(self, acct_name, timeout=30) :
         ''' '''
-        return self.post('chain.get_abi', params=None, json={'account_name' : acct_name})
+        return self.post('chain.get_abi', params=None, json={'account_name' : acct_name}, timeout=timeout)
         
-    def get_actions(self, acct_name, pos=-1, offset=-20) :
+    def get_actions(self, acct_name, pos=-1, offset=-20, timeout=30) :
         '''
         POST /v1/history/get_actions
         {"account_name":"eosnewyorkio","pos":-1,"offset":-20}
         '''
         json={'account_name' : acct_name, "pos" : pos, "offset" : offset}
-        return self.post('history.get_actions', params=None, json=json)
+        return self.post('history.get_actions', params=None, json=json, timeout=timeout)
 
-    def get_currency(self, code='eosio.token', symbol='EOS') :
+    def get_currency(self, code='eosio.token', symbol='EOS', timeout=30) :
         '''
         POST /v1/chain/get_currency_stats HTTP/1.0
         {"json":false,"code":"eosio.token","symbol":"EOS"}
         '''
         json={'json':False, 'code':code, 'symbol':symbol}
-        return self.post('chain.get_currency_stats', params=None, json=json)
+        return self.post('chain.get_currency_stats', params=None, json=json, timeout=timeout)
 
-    def get_currency_balance(self, account, code='eosio.token', symbol='EOS') :
+    def get_currency_balance(self, account, code='eosio.token', symbol='EOS', timeout=30) :
       '''
       POST /v1/chain/get_currency_balance HTTP/1.0
       {"account":"eosio","code":"eosio.token","symbol":"EOS"}
       '''
       json={'account':account, 'code':code, 'symbol':symbol}
-      return self.post('chain.get_currency_balance', params=None, json=json)
+      return self.post('chain.get_currency_balance', params=None, json=json, timeout=timeout)
 
-    def get_currency_stats(self, code, symbol) :
+    def get_currency_stats(self, code, symbol, timeout=30) :
         return self.post('chain.get_currency_stats', json={'code':code, 'symbol':symbol})
     
-    def get_servants(self, acct_name) :
+    def get_servants(self, acct_name, timeout=30) :
         ''' '''
-        return self.post('account_history.get_controlled_accounts', params=None, json={'controlling_account':acct_name})
+        return self.post('account_history.get_controlled_accounts', params=None, json={'controlling_account':acct_name}, timeout=timeout)
 
-    def get_transaction(self, trans_id) :
+    def get_transaction(self, trans_id, timeout=30) :
         '''
         POST /v1/history/get_transaction
         {"id":"abcd1234"}
         '''
-        return self.post('history.get_transaction', params=None, json={'id': trans_id})
+        return self.post('history.get_transaction', params=None, json={'id': trans_id}, timeout=timeout)
 
-    def get_table(self, code, scope, table, table_key='', lower_bound='', upper_bound='', limit=10) :
+    def get_table(self, code, scope, table, table_key='', lower_bound='', upper_bound='', limit=10, timeout=30) :
         '''
         POST /v1/chain/get_table_rows
         {"json":true,"code":"eosio","scope":"eosio","table":"producers","table_key":"","lower_bound":"","upper_bound":"","limit":10}
         '''
         json = {"json":True, "code":code, "scope":scope, "table":table, "table_key":table_key, "lower_bound": lower_bound, "upper_bound": upper_bound, "limit": limit}
-        return self.post('chain.get_table_rows', params=None, json=json)
+        return self.post('chain.get_table_rows', params=None, json=json, timeout=timeout)
 
-    def get_producers(self, lower_bound='', limit=50) :
+    def get_producers(self, lower_bound='', limit=50, timeout=30) :
         '''
         POST /v1/chain/get_producers HTTP/1.0
         {"json":true,"lower_bound":"","limit":50}
         '''
-        return self.post('chain.get_producers', params=None, json={'json':True, 'lower_bound':lower_bound, 'limit':limit})
+        return self.post('chain.get_producers', params=None, json={'json':True, 'lower_bound':lower_bound, 'limit':limit}, timeout=timeout)
 
     #####
     # transactions
     #####
-    def push_transaction(self, transaction, keys, broadcast=True, compression='none') :
+    def push_transaction(self, transaction, keys, broadcast=True, compression='none', timeout=30) :
         ''' '''
         chain_info,lib_info = self.get_chain_lib_info()
         trx = Transaction(transaction, chain_info, lib_info)
@@ -166,26 +166,26 @@ class Cleos :
         }
         data = json.dumps(final_trx, cls=EOSEncoder)
         if broadcast :
-            return self.post('chain.push_transaction', params=None, data=data)
+            return self.post('chain.push_transaction', params=None, data=data, timeout=timeout)
         return data
         
 
-    def push_block(self) :
+    def push_block(self, timeout=30) :
         raise NotImplementedError
         
     #####
     # bin/json 
     #####
     
-    def abi_bin_to_json(self, code, action, binargs) :
+    def abi_bin_to_json(self, code, action, binargs, timeout=30) :
         ''' '''
         json = {'code':code, 'action':action, 'binargs': binargs}
-        return self.post('chain.abi_bin_to_json', params=None, json=json)
+        return self.post('chain.abi_bin_to_json', params=None, json=json, timeout=timeout)
 
-    def abi_json_to_bin(self, code, action, args) :
+    def abi_json_to_bin(self, code, action, args, timeout=30) :
         ''' '''
         json = {'code':code, 'action':action, 'args': args}
-        return self.post('chain.abi_json_to_bin', params=None, json=json)
+        return self.post('chain.abi_json_to_bin', params=None, json=json, timeout=timeout)
         
     #####
     # create keys
@@ -212,7 +212,7 @@ class Cleos :
 
     def create_account(self, creator, creator_privkey, acct_name, owner_key, 
                        active_key='', stake_net='1.0000 EOS', stake_cpu='1.0000 EOS', ramkb=8, permission='active', 
-                       transfer=False, broadcast=True) :
+                       transfer=False, broadcast=True, timeout=30) :
         ''' '''
 
         # check account doesn't exist
@@ -292,7 +292,7 @@ class Cleos :
             [newaccount_json, buyram_json, delegate_json]
         }
         # push transaction
-        return self.push_transaction(trx, creator_privkey, broadcast=broadcast)
+        return self.push_transaction(trx, creator_privkey, broadcast=broadcast, timeout=timeout)
 
     def register_producer(self) :
         json = {}

@@ -28,15 +28,15 @@ class DynamicUrl :
             url_str = '{0}/{1}'.format(url_str, obj)
         return url_str
 
-    def get_url(self, url, params=None, json=None) :
+    def get_url(self, url, params=None, json=None, timeout=30) :
         # get request
-        r = requests.get(url,params=params, json=json)
+        r = requests.get(url,params=params, json=json, timeout=timeout)
         r.raise_for_status()
         return r.json()
 
-    def post_url(self, url, params=None, json=None, data=None) :
+    def post_url(self, url, params=None, json=None, data=None, timeout=30) :
         # post request
-        r = requests.post(url,params=params, json=json, data=data)
+        r = requests.post(url,params=params, json=json, data=data, timeout=timeout)
         try :
             r.raise_for_status()
         except :

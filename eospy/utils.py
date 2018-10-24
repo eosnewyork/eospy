@@ -90,7 +90,7 @@ def string_to_name(s) :
     i = 0
     name = 0
     while i < len(s) :
-        sym = char_to_symbol(s[i])
+        #sym = char_to_symbol(s[i])
         name += (char_to_symbol(s[i]) & 0x1F) << (64-5 * (i + 1))
         i += 1
     if i > 12 :
