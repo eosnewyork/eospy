@@ -2,13 +2,30 @@ import eospy.cleos
 
 ce = eospy.cleos.Cleos(url='http://api.pennstation.eosnewyork.io:7001')
 
-data = ce.abi_json_to_bin('eosio.token', 'transfer', {"from":"eosio", "to":"bob123451234", "quantity" : "1.0000 EOS", "memo":"test"})
-print(data)
-
-# create base transaction
-trx = {"actions":[{"account":"eosio.token","name":"transfer","authorization":[{"actor":"eosio","permission":"active"}],"data":data['binargs']}]}
-
-print('actions: '+str(trx))
+payload = [
+        {
+            'args': {
+                "from": "eosio",  # sender
+                "to": "silvercondor",  # receiver
+                "quantity": '1.0000 EOS',  # In EOS
+                "memo": "EOS to the moon",
+            },
+            "account": "eosio.token",
+            "name": "transfer",
+            "authorization": [{
+                "actor": "eosio",
+                "permission": "active",
+            }],
+        }
+    ]
+#Converting payload to binary
+data=ce.abi_json_to_bin(payload[0]['account'],payload[0]['name'],payload[0]['args'])
+#Inserting payload binary form as "data" field in original payload
+payload[0]['data']=data['binargs']
+#Removing the arguments field
+payload[0].pop('args')
+#final transaction formed
+trx = {"actions":[payload[0]]}
 
 # use a string or EOSKey for push_transaction
 key = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
