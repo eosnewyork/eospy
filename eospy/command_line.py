@@ -170,7 +170,7 @@ def validate_chain():
     # get chain infomation
     print('Getting chain information')
     info = ce.get_info()
-    console_print(info):
+    console_print(info)
 
     ########################
     # functions
