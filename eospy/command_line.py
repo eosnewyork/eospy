@@ -134,7 +134,7 @@ def cleos():
         if args.system == 'newaccount' :
             resp = ce.create_account(args.creator, args.creator_key, args.account, args.owner, args.active, 
                                      stake_net=args.stake_net, stake_cpu=args.stake_cpu, ramkb=args.ramkb, 
-                                     permission=args.permssion, transfer=args.transfer, broadcast=args.transfer, 
+                                     permission=args.permission, transfer=args.transfer, broadcast=args.transfer, 
                                      timeout=args.timeout)
             console_print(resp)
 
