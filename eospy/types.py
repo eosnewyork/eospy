@@ -106,7 +106,7 @@ class Action(BaseObject) :
         auth = self._encode_buffer(self.authorization)
         # need to figure out how to process data
         # get length
-        data_len = self._encode_buffer(Byte(len(self.data)/2))
+        data_len = self._encode_buffer(VarUInt(len(self.data)/2))
         data =  data_len + self.data
         return '{}{}{}{}'.format(acct, name, auth, data)
 
