@@ -3,7 +3,7 @@ import os
 
 setup(name='eospy',
       #version=os.getenv('BUILD_VERSION', 'DEV'),
-      version='1.1.5',
+      version='1.1.7',
       description='Python library for the eosio REST API',
       author='deck',
       author_email='deck@eosnewyork.io',
