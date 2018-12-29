@@ -52,8 +52,9 @@ class VarUInt :
     
     def encode(self) :
         ''' '''
-        val = self._val
-        buf = int((val) & 0x7f)
+        # ensure value is an int
+        val = int(self._val)
+        buf = (val) & 0x7f
         val >>= 7
         buf |= (((val > 0) if 1 else 0) << 7)
         self._push_byte(buf)
