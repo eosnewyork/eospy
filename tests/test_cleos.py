@@ -70,6 +70,7 @@ class TestCleos :
         bin = self.ce.abi_json_to_bin('eosio.token', 'transfer', self.json_to_bin)
         assert bin['binargs'] == self.bin_to_json
 
+    @raises(requests.exceptions.HTTPError)
     def test_json_to_bin_bad(self) :
         bin = self.ce.abi_json_to_bin('eosio.token', 'transfer', '')
         assert bin['binargs'] == ''
