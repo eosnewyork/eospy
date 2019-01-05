@@ -36,8 +36,10 @@ mkdir -p ~/envs/eospy
 virtualenv ~/envs/eospy
 # activate the environment
 source ~/envs/eospy/bin/activate
-# install the library
+# install the library from master
 pip install git+https://github.com/eosnewyork/eospy
+# install the library from pip
+pip install libeospy
 ```
 
 ### Windows

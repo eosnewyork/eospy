@@ -1,10 +1,16 @@
 from setuptools import setup, find_packages
 import os
 
-setup(name='eospy',
+this_directory = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(this_directory, 'README.md')) as f:
+    long_description = f.read()
+
+setup(name='libeospy',
       #version=os.getenv('BUILD_VERSION', 'DEV'),
       version='1.1.8',
-      description='Python library for the eosio REST API',
+      description='Python library for the eos.io REST API',
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       author='deck',
       author_email='deck@eosnewyork.io',
       url='https://github.com/eosnewyork/eospy',
