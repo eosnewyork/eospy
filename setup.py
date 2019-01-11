@@ -6,8 +6,8 @@ with open(os.path.join(this_directory, 'README.md')) as f:
     long_description = f.read()
 
 setup(name='libeospy',
-      #version=os.getenv('BUILD_VERSION', 'DEV'),
-      version='1.1.8',
+      version=os.getenv('BUILD_VERSION', '0.0.1'),
+      #version='1.1.8',
       description='Python library for the eos.io REST API',
       long_description=long_description,
       long_description_content_type='text/markdown',
