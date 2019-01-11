@@ -109,6 +109,7 @@ class Action(BaseObject) :
         # get length
         data_len = self._encode_buffer(VarUInt(len(self.data)/2))
         data =  data_len + self.data
+        print('{} {} {} {}'.format(acct, name, auth, data))
         return '{}{}{}{}'.format(acct, name, auth, data)
 
 class Asset :
@@ -184,7 +185,6 @@ class Transaction(BaseObject) :
     def _encode_hdr(self) :
         ''' '''
         # convert
-        tz = dt.tzinfo(self.expiration)
         exp_ts = (self.expiration - dt.datetime(1970, 1, 1, tzinfo=self.expiration.tzinfo)).total_seconds()
         exp = self._encode_buffer(UInt32(exp_ts))
         ref_blk = self._encode_buffer(UInt16(self.ref_block_num))
@@ -194,6 +194,7 @@ class Transaction(BaseObject) :
         delay_sec = self._encode_buffer(VarUInt(self.delay_sec))
         # create hdr buffer
         hdr = '{}{}{}{}{}{}'.format(exp, ref_blk, ref_block_prefix, net_usage_words, max_cpu_usage_ms, delay_sec)
+        print('{} {} {} {} {} {}'.format(exp, ref_blk, ref_block_prefix, net_usage_words, max_cpu_usage_ms, delay_sec))
         return hdr
 
     def encode(self) :
