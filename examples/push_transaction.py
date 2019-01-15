@@ -25,7 +25,7 @@ payload[0]['data']=data['binargs']
 #Removing the arguments field
 payload[0].pop('args')
 #final transaction formed
-trx = {"actions":[payload[0]]}
+trx = {"actions": payload}
 
 # use a string or EOSKey for push_transaction
 key = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
