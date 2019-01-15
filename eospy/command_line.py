@@ -1,5 +1,6 @@
 import argparse
 from .cleos import Cleos
+from .testeos import TestEos
 import json
 
 def console_print(data):
@@ -8,7 +9,7 @@ def console_print(data):
 def cleos():
     parser = argparse.ArgumentParser(description='Command Line Interface to EOSIO via python')
     parser.add_argument('--api-version','-v', type=str, default='v1', action='store', dest='api_version')
-    parser.add_argument('--url', '-u', type=str, action='store', default='https://api.eosnewyork.io', dest='url')
+    parser.add_argument('--url', '-u', type=str, action='store', default='https://proxy.eosnode.tools', dest='url')
     parser.add_argument('--time-out', type=int, action='store', default=30, dest='timeout')
     subparsers = parser.add_subparsers(dest='subparser')
     # get
@@ -138,3 +139,16 @@ def cleos():
                                      timeout=args.timeout)
             console_print(resp)
 
+def testeos(): 
+    parser = argparse.ArgumentParser(description='EOSIO testing harness')
+    parser.add_argument('--yaml','-y', type=str, action='store', required=True, dest='yaml_loc')
+    parser.add_argument('--tests','-t', nargs='*', action='store', default="all", dest='tests')
+    # process args
+    args = parser.parse_args()
+
+    tester = TestEos(args.yaml_loc)
+    if args.tests == 'all':
+        tester.run_test_all()
+    else:
+        for test in args.tests:
+            tester.run_test_one(test)

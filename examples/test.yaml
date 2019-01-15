@@ -1,0 +1,46 @@
+---
+environment: # eosio evironment
+  url: http://api.pennstation.eosnewyork.io:7001
+tests: # tests to run and whether they should fail or not
+  - name: test_transfer_success
+    actions:
+      - action: transfer
+        contract: eosio.token
+        authorization: 
+          actor: bob123451234
+          permission: active
+          key: 5HuaTWKeGzZhqyzuzFAjjFjPnnnjdgcp562oBSS8Wv1qgDSkR2W
+        parameters:
+          from: bob123451234
+          to: eosio
+          quantity: "100.0000 EOS"
+          memo: "test1"
+        exception: no
+  - name: test_transfer_fail
+    actions:
+      - action: transfer
+        contract: eosio.token
+        authorization: 
+          actor: bob123451234
+          permission: active
+          key: 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3
+        parameters:
+          from: bob123451234
+          to: eosio
+          quantity: "100.0000 EOS"
+          memo: "test1"
+        exception: yes
+  - name: test_voting_producers
+    actions:
+      - action: voteproducer
+        contract: eosio
+        authorization: 
+          actor: bob123451234
+          permission: active
+          key: 5HuaTWKeGzZhqyzuzFAjjFjPnnnjdgcp562oBSS8Wv1qgDSkR2W
+        parameters:
+          voter: bob123451234
+          proxy: ""
+          producers: ["bpa1", bpa2]
+        exception: no
+        

@@ -1,82 +1,82 @@
 import colander
 
-class BaseSchema(colander.SchemaNode) :
+class BaseSchema(colander.SchemaNode):
     required = True
 
-class StringSchema(BaseSchema) :
+class StringSchema(BaseSchema):
     schema_type = colander.String
     
 # str schemas
-class NameSchema(StringSchema) : pass 
-class AccountNameSchema(NameSchema) : pass
-class PermissionNameSchema(NameSchema) : pass
-class ActionNameSchema(NameSchema) : pass
-class TableNameSchema(NameSchema) : pass 
-class ScopeNameSchema(NameSchema) : pass
+class NameSchema(StringSchema): pass 
+class AccountNameSchema(NameSchema): pass
+class PermissionNameSchema(NameSchema): pass
+class ActionNameSchema(NameSchema): pass
+class TableNameSchema(NameSchema): pass 
+class ScopeNameSchema(NameSchema): pass
 
 # boolean
-class BooleanSchema(BaseSchema) :
+class BooleanSchema(BaseSchema):
     schema_type = colander.Bool
 
 # numeric
 
-class IntSchema(BaseSchema) :
+class IntSchema(BaseSchema):
     schema_type = colander.Int
 
-class HexBytesSchema(StringSchema) :
+class HexBytesSchema(StringSchema):
     missing = colander.drop
 
-class DataSchema(StringSchema) : pass
+class DataSchema(StringSchema): pass
 
 # Authority/permission
-class ThresholdSchema(IntSchema) : pass
+class ThresholdSchema(IntSchema): pass
 
-class PublicKeySchema(StringSchema) : pass
+class PublicKeySchema(StringSchema): pass
 
-class WeightSchema(IntSchema) : pass 
+class WeightSchema(IntSchema): pass 
 
 class KeyWeightSchema(colander.MappingSchema):
     key = PublicKeySchema()
     weight = WeightSchema()
 
-class KeyWeightsSchema(colander.SequenceSchema) :
+class KeyWeightsSchema(colander.SequenceSchema):
     key = KeyWeightSchema()
 
-class PermissionLevelSchema(colander.MappingSchema) :
+class PermissionLevelSchema(colander.MappingSchema):
     actor = AccountNameSchema()
     permission = PermissionNameSchema()
 
-class PermissionLevelsSchema(colander.SequenceSchema) :
+class PermissionLevelsSchema(colander.SequenceSchema):
     permission = PermissionLevelSchema()
     
-class PermissionLevelWeightSchema(colander.MappingSchema) :
+class PermissionLevelWeightSchema(colander.MappingSchema):
     permission = PermissionLevelSchema()
     weight = WeightSchema()
     
-class PermissionLevelWeightsSchema(colander.SequenceSchema) :
+class PermissionLevelWeightsSchema(colander.SequenceSchema):
     permission_level = PermissionLevelWeightSchema()
 
-class WaitSecSchema(IntSchema) : pass
+class WaitSecSchema(IntSchema): pass
     
-class WaitWeightSchema(colander.MappingSchema) :
+class WaitWeightSchema(colander.MappingSchema):
     wait_sec = WaitSecSchema()
     weight = WeightSchema()
     
-class WaitWeightsSchema(colander.SequenceSchema) :
+class WaitWeightsSchema(colander.SequenceSchema):
     waits = WaitWeightSchema()
     
-class AuthoritySchema(colander.MappingSchema) :
+class AuthoritySchema(colander.MappingSchema):
     threshold = ThresholdSchema()
     keys = KeyWeightsSchema()
     accounts = PermissionLevelWeightsSchema()
     waits = WaitWeightsSchema()
 
-class PermNameSchema(BaseSchema) :
+class PermNameSchema(BaseSchema):
     schema_type = colander.String
 
-class ParentSchema(StringSchema) : pass
+class ParentSchema(StringSchema): pass
 
-class PermissionSchema(colander.MappingSchema) :
+class PermissionSchema(colander.MappingSchema):
     perm_name = PermNameSchema()
     parent = ParentSchema()
     required_auth = AuthoritySchema()
@@ -85,26 +85,26 @@ class PermissionSchema(colander.MappingSchema) :
 # message actions attributes
 #############################
 
-class ActionSchema(colander.MappingSchema) :
+class ActionSchema(colander.MappingSchema):
     account = AccountNameSchema()
     name = ActionNameSchema()
     authorization = PermissionLevelsSchema()
     hex_data = HexBytesSchema()
     data = DataSchema()
     
-class ActionsSchema(colander.SequenceSchema) :
+class ActionsSchema(colander.SequenceSchema):
     action = ActionSchema()
 
-class ContextActionsSchema(colander.SequenceSchema) :
+class ContextActionsSchema(colander.SequenceSchema):
     action = ActionSchema()
     default = []
     missing = []
 
-class ExtensionSchema(colander.MappingSchema) :
+class ExtensionSchema(colander.MappingSchema):
     type = IntSchema()
     data = HexBytesSchema()
 
-class ExtensionsSchema(colander.SequenceSchema) :
+class ExtensionsSchema(colander.SequenceSchema):
     extension = ExtensionSchema()
     default = []
     missing = []
@@ -113,25 +113,25 @@ class ExtensionsSchema(colander.SequenceSchema) :
 # message header attributes
 #############################
 
-class TimeSchema(BaseSchema) :
+class TimeSchema(BaseSchema):
     schema_type = colander.DateTime
 
-class RefBlockNumSchema(IntSchema) : pass
-class RefBlockPrefixSchema(IntSchema) : pass
-class NetUsageWordsSchema(IntSchema) :
+class RefBlockNumSchema(IntSchema): pass
+class RefBlockPrefixSchema(IntSchema): pass
+class NetUsageWordsSchema(IntSchema):
     default = 0
     missing = 0
-class MaxCpuUsageMsSchema(IntSchema) :
+class MaxCpuUsageMsSchema(IntSchema):
     default = 0
     missing = 0
-class DelaySecSchema(IntSchema) :
+class DelaySecSchema(IntSchema):
     default = 0
     missing = 0
 
-class SignaturesSchema(colander.Sequence) :
+class SignaturesSchema(colander.Sequence):
     signatures = StringSchema()
       
-class TransactionSchema(colander.MappingSchema) :
+class TransactionSchema(colander.MappingSchema):
     # header
     expiration = TimeSchema()
     ref_block_num = RefBlockNumSchema()
@@ -145,25 +145,25 @@ class TransactionSchema(colander.MappingSchema) :
     transaction_extensions = ExtensionsSchema()
 
 # signed transaction
-class SignedTransactionSchema(colander.MappingSchema) :
+class SignedTransactionSchema(colander.MappingSchema):
     compression = StringSchema
     transaction = TransactionSchema()
     signatures = SignaturesSchema()
 
 # final transaction
-class PushTransactionSchema(colander.MappingSchema) :
+class PushTransactionSchema(colander.MappingSchema):
     transaction_id = StringSchema()
     broadcast = BooleanSchema()
     transaction = SignedTransactionSchema()
     
-class TransactionsSchema(colander.SequenceSchema) :
+class TransactionsSchema(colander.SequenceSchema):
     transactions = TransactionSchema()
     
 #############################
 # get info
 #############################
 
-class ChainInfoSchema(colander.MappingSchema) :
+class ChainInfoSchema(colander.MappingSchema):
     server_version = StringSchema()
     chain_id = StringSchema()
     head_block_num = IntSchema()
@@ -181,19 +181,19 @@ class ChainInfoSchema(colander.MappingSchema) :
 # get block
 #############################
 
-class ProducerSchema(colander.SchemaNode) :
+class ProducerSchema(colander.SchemaNode):
     schema_type = colander.String
     missing = 'null'
     default = 'null'
     required = False
 
-class HeaderExtsSchema(colander.SequenceSchema) :
+class HeaderExtsSchema(colander.SequenceSchema):
     header_extensions = ExtensionsSchema()
 
-class BlockExtsSchema(colander.SequenceSchema) :
+class BlockExtsSchema(colander.SequenceSchema):
     block_extensions = ExtensionsSchema()
 
-class BlockInfoSchema(colander.MappingSchema) :
+class BlockInfoSchema(colander.MappingSchema):
     timestamp = TimeSchema()
     producer = StringSchema()
     confirmed = IntSchema()
@@ -210,3 +210,43 @@ class BlockInfoSchema(colander.MappingSchema) :
     id = StringSchema()
     block_num = IntSchema()
     ref_block_prefix = IntSchema()
+
+#############################
+# eosytest
+#############################
+
+def test_param_validator(node, value):
+    if not isinstance(value, dict):
+        raise colander.Invalid(node, '{} is not a valid dictionary'.format(value))
+
+class TestEnvSchema(colander.MappingSchema):
+    url = StringSchema()
+
+class TestAuthSchema(colander.MappingSchema):
+    actor = StringSchema()
+    permission = StringSchema()
+    key = StringSchema()
+
+class TestActionSchema(colander.MappingSchema):
+    action = StringSchema()
+    contract = StringSchema()
+    authorization = TestAuthSchema()
+    parameters = colander.SchemaNode(
+        colander.Mapping(unknown='preserve'),
+        validator=test_param_validator
+    )
+    exception = BooleanSchema()
+
+class TestActionsSchema(colander.SequenceSchema):
+    actions = TestActionSchema()
+
+class TestSchema(colander.MappingSchema):
+    name = StringSchema()
+    actions = TestActionsSchema()
+
+class TestsSchema(colander.SequenceSchema):
+    tests = TestSchema()
+
+class TestDocSchema(colander.MappingSchema):
+    environment = TestEnvSchema()
+    tests = TestsSchema()

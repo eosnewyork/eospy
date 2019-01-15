@@ -7,7 +7,6 @@ with open(os.path.join(this_directory, 'README.md')) as f:
 
 setup(name='libeospy',
       version=os.getenv('BUILD_VERSION', '0.0.1'),
-      #version='1.1.8',
       description='Python library for the eos.io REST API',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -22,12 +21,14 @@ setup(name='libeospy',
           'ecdsa',
           'colander',
           'pytz',
-          'six'
+          'six',
+          'pyyaml',
       ],
       entry_points = {
           'console_scripts' :[
               'validate_chain = eospy.command_line:validate_chain',
-              'pycleos = eospy.command_line:cleos'
+              'pycleos = eospy.command_line:cleos',
+              'pytesteos = eospy.command_line:testeos',
           ],
       }
 )
