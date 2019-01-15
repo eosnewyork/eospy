@@ -54,7 +54,7 @@ class VarUInt :
         ''' '''
         # ensure value is an int
         val = int(self._val)
-        buf = (val) & 0x7f
+        buf = int((val) & 0x7f)
         val >>= 7
         buf |= (((val > 0) if 1 else 0) << 7)
         self._push_byte(buf)
@@ -187,7 +187,7 @@ class Transaction(BaseObject) :
         # convert
         exp_ts = (self.expiration - dt.datetime(1970, 1, 1, tzinfo=self.expiration.tzinfo)).total_seconds()
         exp = self._encode_buffer(UInt32(exp_ts))
-        ref_blk = self._encode_buffer(UInt16(self.ref_block_num))
+        ref_blk = self._encode_buffer(UInt16(self.ref_block_num & 0xffff))
         ref_block_prefix = self._encode_buffer(UInt32(self.ref_block_prefix))
         net_usage_words = self._encode_buffer(VarUInt(self.net_usage_words))
         max_cpu_usage_ms = self._encode_buffer(Byte(self.max_cpu_usage_ms))
@@ -270,4 +270,3 @@ class EOSBuffer :
             return buf
         else :
             raise TypeError('Invalid type {} specified'.format(type(val)))
-        
