@@ -13,7 +13,7 @@ tests: # tests to run and whether they should fail or not
         parameters:
           from: bob123451234
           to: eosio
-          quantity: "100.0000 EOS"
+          quantity: "100.0000 SYS"
           memo: "test1"
         exception: no
   - name: test_transfer_fail
@@ -27,7 +27,7 @@ tests: # tests to run and whether they should fail or not
         parameters:
           from: bob123451234
           to: eosio
-          quantity: "100.0000 EOS"
+          quantity: "100.0000 SYS"
           memo: "test1"
         exception: yes
   - name: test_voting_producers

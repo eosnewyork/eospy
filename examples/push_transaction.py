@@ -7,7 +7,7 @@ payload = [
             'args': {
                 "from": "eosio",  # sender
                 "to": "bob123451234",  # receiver
-                "quantity": '1.0000 EOS',  # In EOS
+                "quantity": '1.0000 SYS',  # In SYS
                 "memo": "EOS to the moon",
             },
             "account": "eosio.token",
