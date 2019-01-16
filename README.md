@@ -57,11 +57,11 @@ https://www.atlassian.com/git/tutorials/install-git
 3. Install eospy
 ```
 # install from github
-# look [here](https://github.com/eosnewyork/eospy/releases) for the latest release.
 pip install git+https://github.com/eosnewyork/eospy.git@<release>
 # install from pip
 pip install libeospy
 ```
+look [here](https://github.com/eosnewyork/eospy/releases) for the latest release.
 
 ## API Endpoints
 For a more complete list of API endpoints check out:
