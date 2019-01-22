@@ -54,10 +54,9 @@ https://www.howtogeek.com/197947/how-to-install-python-on-windows/
 2. Install git
 https://www.atlassian.com/git/tutorials/install-git
 
-3. Install eospy
+3. Install eospy. Look [here](https://github.com/eosnewyork/eospy/releases) for the latest release number.
 ```
 # install from github
-# look [here](https://github.com/eosnewyork/eospy/releases) for the latest release.
 pip install git+https://github.com/eosnewyork/eospy.git@<release>
 # install from pip
 pip install libeospy
