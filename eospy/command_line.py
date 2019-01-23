@@ -1,6 +1,8 @@
 import argparse
 from .cleos import Cleos
 from .testeos import TestEos
+from .utils import parse_key_file
+from .exceptions import InvalidPermissionFormat
 import json
 
 def console_print(data):
@@ -72,7 +74,20 @@ def cleos():
     create_parser = subparsers.add_parser('create')
     create_subparsers = create_parser.add_subparsers(dest='create')
     # create EOS key
-    create_subparsers.add_parser('key')
+    create_key = create_subparsers.add_parser('key')
+    group_key = create_key.add_mutually_exclusive_group(required=True)
+    group_key.add_argument('--key-file','-k', type=str, action='store', help='file to output the keys too', dest='key_file')
+    group_key.add_argument('--to-console','-c', action='store_true', help='output to the console', dest='to_console')
+    # push
+    push_parser = subparsers.add_parser('push')
+    push_subparsers = push_parser.add_subparsers(dest='push')
+    push_action = push_subparsers.add_parser('action')
+    push_action.add_argument('account', type=str, action='store', help='account name for the contract to execute')
+    push_action.add_argument('action', type=str, action='store', help='action to execute')
+    push_action.add_argument('data', type=str, action='store', help='JSON string of the arguments to the contract action')
+    push_action.add_argument('--key-file','-k', type=str, action='store', required=True, help='file containing the private key that will be used', dest='key_file')
+    push_action.add_argument('--permission','-p', type=str, action='store', required=True, help='account and permission level to use, e.g \'account@permission\'', dest='permission')
+    push_action.add_argument('--dont-broadcast','-d', action='store_false', default=True, help='do not broadcast the transaction to the network.', dest='broadcast')
     # system commands
     system_parser = subparsers.add_parser('system')
     system_subparsers = system_parser.add_subparsers(dest='system')
@@ -88,7 +103,7 @@ def cleos():
     newacct_parser.add_argument('--buy-ram-kbytes', type=int, action='store', default=8, dest='ramkb')
     newacct_parser.add_argument('--permission','-p', type=str, action='store', default='active', dest='permission')
     newacct_parser.add_argument('--transfer', action='store_true', default=False, dest='transfer')
-    newacct_parser.add_argument('--broadcast', action='store_false', default=True, dest='broadcast')
+    newacct_parser.add_argument('--dont-broadcast','-d', action='store_false', default=True, dest='broadcast')
     # process args
     args = parser.parse_args()
     # 
@@ -126,11 +141,42 @@ def cleos():
             console_print(ce.get_actions(args.account, pos=args.pos, offset=args.offset, timeout=args.timeout))
         elif args.get == 'bin2json' :
             console_print(ce.abi_bin_to_json(args.code, args.action, args.binargs, timeout=args.timeout))
+    elif args.subparser == 'push':
+        if args.push == 'action':
+            priv_key = parse_key_file(args.key_file)
+            arguments = json.loads(args.data)
+            try:
+                account,permission = args.permission.split('@')
+            except ValueError:
+                raise InvalidPermissionFormat('Permission format needs to be account@permission')
+            payload = {
+                    "account": args.account,
+                    "name": args.action,
+                    "authorization": [{
+                        "actor": account,
+                        "permission": permission,
+                    }],
+                }
+            data = ce.abi_json_to_bin(args.account, args.action, arguments)
+            print(data)
+            payload['data'] = data['binargs']
+            print(payload)
+            trx = {"actions": [payload]}
+            resp = ce.push_transaction(trx, priv_key, broadcast=args.broadcast)
+            console_print(resp)
     elif args.subparser == 'create' :
         if args.create == 'key' :
             k = ce.create_key()
-            print('Private key:{}'.format(k.to_wif()))
-            print('Public key: {}'.format(k.to_public()))
+            priv_key = 'Private key: {}'.format(k.to_wif())
+            pub_key = 'Public key: {}'.format(k.to_public())
+            if args.to_console:
+                print(priv_key)
+                print(pub_key)
+            else:
+                with open(args.key_file, 'w') as wf:
+                    wf.write(priv_key + '\n')
+                    wf.write(pub_key + '\n')
+                print("Wrote keys to {}".format(args.key_file))
     elif args.subparser == 'system' :
         if args.system == 'newaccount' :
             resp = ce.create_account(args.creator, args.creator_key, args.account, args.owner, args.active, 

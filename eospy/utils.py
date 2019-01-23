@@ -2,6 +2,26 @@ from binascii import hexlify
 import struct
 import hashlib
 import six
+from .exceptions import InvalidKeyFile
+
+def parse_key_file(filename, first_key=True):
+    keys=[]
+    with open(filename) as fo: 
+        lines = fo.readlines()
+        for line in lines:
+            if line.startswith('Private'):
+                try:
+                    header,key = line.replace(' ', '').rstrip().split(':')
+                    if key and first_key:
+                        return key
+                    elif key: 
+                        keys.append(key)
+                except ValueError:
+                    # invalid format
+                    pass
+    if keys:
+        return keys
+    raise exceptions.InvalidKeyFile('Key file was in an invalid format. Must contain one key pair and have a prefix of "Private key:"')
 
 def sha256(data):
     ''' '''

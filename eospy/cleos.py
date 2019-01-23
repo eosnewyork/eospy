@@ -4,9 +4,11 @@
 
 from .dynamic_url import DynamicUrl
 from .keys import EOSKey, check_wif
-from .utils import sig_digest
+from .utils import sig_digest, parse_key_file
 from .types import EOSEncoder, Transaction 
+from .exceptions import EOSKeyError
 import json
+import os
 
 class Cleos :
     
@@ -140,25 +142,27 @@ class Cleos :
     # transactions
     #####
     def push_transaction(self, transaction, keys, broadcast=True, compression='none', timeout=30) :
-        ''' '''
+        ''' parameter keys can be a list of WIF strings or EOSKey objects or a filename to key file'''
         chain_info,lib_info = self.get_chain_lib_info()
         trx = Transaction(transaction, chain_info, lib_info)
         #encoded = trx.encode()
         digest = sig_digest(trx.encode(), chain_info['chain_id'])
         # sign the transaction
         signatures = []
-        if not isinstance(keys, list) :
+        if os.path.isfile(keys):
+             keys = parse_key_file(keys, first_key=False)
+        elif not isinstance(keys, list) :
             keys = [keys]
+
         for key in keys :
             if check_wif(key) :
                 k = EOSKey(key)
             elif isinstance(key, EOSKey) :
                 k = key
             else :
-                raise ValueError('Must pass a WIF string or EOSKey')
+                raise EOSKeyError('Must pass a WIF string or EOSKey')
             signatures.append(k.sign(digest))
         # build final trx
-        
         final_trx = {
                 'compression' : compression,
                 'transaction' : trx.__dict__,
