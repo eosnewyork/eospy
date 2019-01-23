@@ -4,10 +4,8 @@ This library is still a work in progress but currently has the ability to perfor
 
 The library now supports signing transactions/key creation for both python 2.7 and 3.x. This is the first iteration and is very rough. The key creation has not been tested fully and should be used at your own risk.
 
-The cleos commands currently implemented.
+The commands currently implemented.
 ```
-Usage: /usr/local/bin/cleos get SUBCOMMAND
-
 Subcommands:
   get
     info                        Get current blockchain information
@@ -21,6 +19,8 @@ Subcommands:
     servants                    Retrieve accounts which are servants of a given account
     transaction                 Retrieve a transaction from the blockchain
     actions                     Retrieve all actions with specific account name referenced in authorization or receiver
+  push 
+    action                      Push a transaction with a single action
   system
     newaccount                  Create an account, buy ram, stake for bandwidth for the account
 ```
@@ -57,7 +57,8 @@ https://www.atlassian.com/git/tutorials/install-git
 3. Install eospy. Look [here](https://github.com/eosnewyork/eospy/releases) for the latest release number.
 ```
 # install from github
-pip install git+https://github.com/eosnewyork/eospy.git@<release>
+# pip install git+https://github.com/eosnewyork/eospy.git@<release>
+pip install git+https://github.com/eosnewyork/eospy.git@v1.1.8
 # install from pip
 pip install libeospy
 ```
@@ -106,3 +107,6 @@ pycleos --url https://api.eosnewyork.io get actions --account aaaaaaaaaaaa
 
 Check out the examples directory for some examples of how to use the library
 
+## Testeos
+
+Coming soon...
