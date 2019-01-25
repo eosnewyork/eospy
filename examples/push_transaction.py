@@ -1,6 +1,8 @@
 import eospy.cleos
 import os
-
+# this url is to a testnet that may or may not be working.
+# We suggest using a different testnet such as kylin or jungle
+# 
 ce = eospy.cleos.Cleos(url='http://api.pennstation.eosnewyork.io:7001')
 
 arguments = {
