@@ -25,12 +25,11 @@ data=ce.abi_json_to_bin(payload['account'],payload['name'],arguments)
 payload['data']=data['binargs']
 #final transaction formed
 trx = {"actions": [payload]}
-
 # use a string or EOSKey for push_transaction
 key = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 # use EOSKey:
 # import eospy.keys
-# key = eospy.keys.EOSKey('5HuaTWKeGzZhqyzuzFAjjFjPnnnjdgcp562oBSS8Wv1qgDSkR2W')
+# key = eospy.keys.EOSKey('5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3')
 resp = ce.push_transaction(trx, key, broadcast=True)
 print('------------------------------------------------')
 print(resp)
