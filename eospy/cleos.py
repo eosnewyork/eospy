@@ -5,8 +5,8 @@
 from .dynamic_url import DynamicUrl
 from .keys import EOSKey, check_wif
 from .utils import sig_digest, parse_key_file
-from .types import EOSEncoder, Transaction 
-from .exceptions import EOSKeyError
+from .types import EOSEncoder, Transaction, PackedTransaction
+from .exceptions import EOSKeyError, EOSMsigInvalidProposal
 import json
 import os
 
@@ -19,7 +19,11 @@ class Cleos :
         self._version = version
         self._dynurl = DynamicUrl(url=self._prod_url, version=self._version)
         self._walleturl = DynamicUrl(url=self._wallet_url, version=self._version)
-        
+    
+    #####
+    # private functions
+    #####
+
     def get(self, func='', **kwargs) :
         ''' '''
         cmd = eval('self._dynurl.{0}'.format(func))
@@ -172,8 +176,7 @@ class Cleos :
         if broadcast :
             return self.post('chain.push_transaction', params=None, data=data, timeout=timeout)
         return data
-        
-
+    
     def push_block(self, timeout=30) :
         raise NotImplementedError
         
@@ -204,7 +207,27 @@ class Cleos :
     # multisig
     #####
     
-    #def multisig_review(self, )
+    def multisig_review(self, proposer, proposal):
+        ''' ''' 
+        review = []
+        prop = self.get_table(code="eosio.msig", scope=proposer, table="proposal", lower_bound=proposal, limit=1)
+        if prop['rows'] :
+            for row in prop['rows']:
+                packed = PackedTransaction(row['packed_transaction'], self)
+                trx = packed.get_transaction()
+                p = {
+                    "proposer": proposer,
+                    "proposal_name": proposal,
+                    "transaction_id": packed.get_id(),
+                    "packed_transaction": row['packed_transaction'],
+                    "transaction": trx,
+                }
+                review = p
+        else:
+            raise EOSMsigInvalidProposal("{} is not a valid proposal".format(proposal))
+        # 
+        return review
+                
         
     #####
     # system functions
@@ -301,7 +324,7 @@ class Cleos :
     def register_producer(self) :
         json = {}
         return self.post()
-    
+
     #####
     # wallet functions
     #####

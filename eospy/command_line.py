@@ -91,6 +91,12 @@ def cleos():
     # system commands
     system_parser = subparsers.add_parser('system')
     system_subparsers = system_parser.add_subparsers(dest='system')
+    # multisig
+    msig_parser = subparsers.add_parser('multisig')
+    msig_subparsers = msig_parser.add_subparsers(dest='multisig')
+    msig_review = msig_subparsers.add_parser('review')
+    msig_review.add_argument('proposer', type=str, action='store', help='proposer name')
+    msig_review.add_argument('proposal', type=str, action='store', help='proposal name')
     # account
     newacct_parser = system_subparsers.add_parser('newaccount')
     newacct_parser.add_argument('creator', type=str, action='store')
@@ -111,6 +117,7 @@ def cleos():
     ce = Cleos(url=args.url, version=args.api_version)
 
     # run commands based on subparser
+    # GET
     if args.subparser == 'get' :
         if args.get == 'info' :
             console_print(ce.get_info(timeout=args.timeout))
@@ -141,6 +148,7 @@ def cleos():
             console_print(ce.get_actions(args.account, pos=args.pos, offset=args.offset, timeout=args.timeout))
         elif args.get == 'bin2json' :
             console_print(ce.abi_bin_to_json(args.code, args.action, args.binargs, timeout=args.timeout))
+    # PUSH
     elif args.subparser == 'push':
         if args.push == 'action':
             priv_key = parse_key_file(args.key_file)
@@ -164,8 +172,13 @@ def cleos():
             trx = {"actions": [payload]}
             resp = ce.push_transaction(trx, priv_key, broadcast=args.broadcast)
             console_print(resp)
-    elif args.subparser == 'create' :
-        if args.create == 'key' :
+    # MULISIG
+    elif args.subparser == "multisig":
+        if args.multisig == "review":
+            console_print(ce.multisig_review(args.proposer, args.proposal))
+    # CREATE
+    elif args.subparser == 'create':
+        if args.create == 'key':
             k = ce.create_key()
             priv_key = 'Private key: {}'.format(k.to_wif())
             pub_key = 'Public key: {}'.format(k.to_public())
@@ -177,6 +190,7 @@ def cleos():
                     wf.write(priv_key + '\n')
                     wf.write(pub_key + '\n')
                 print("Wrote keys to {}".format(args.key_file))
+    # SYSTEM
     elif args.subparser == 'system' :
         if args.system == 'newaccount' :
             resp = ce.create_account(args.creator, args.creator_key, args.account, args.owner, args.active, 

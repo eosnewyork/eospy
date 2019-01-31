@@ -21,7 +21,7 @@ def parse_key_file(filename, first_key=True):
                     pass
     if keys:
         return keys
-    raise exceptions.InvalidKeyFile('Key file was in an invalid format. Must contain one key pair and have a prefix of "Private key:"')
+    raise InvalidKeyFile('Key file was in an invalid format. Must contain one key pair and have a prefix of "Private key:"')
 
 def sha256(data):
     ''' '''
@@ -117,28 +117,36 @@ def string_to_name(s) :
         name |= char_to_symbol(s[11]) & 0x0F
     return name
 
+
 def name_to_string(n) :
     ''' '''
-    pass
+    charmap = '.12345abcdefghijklmnopqrstuvwxyz'
+    name = ['.'] * 13
+    i = 0
+    while i <= 12:
+        c = charmap[n & (0x0F if i == 0 else 0x1F)]
+        name[12-i] = c
+        n >>= 4 if i == 0 else 5
+        i += 1
+    return ''.join(name).rstrip('.')
 
+# if six.PY3 :
+#     def _byte(b) :
+#         return bytes((b,))
+# else :
+#     def _byte(b) :
+#         return chr(b)
 
-if six.PY3 :
-    def _byte(b) :
-        return bytes((b,))
-else :
-    def _byte(b) :
-        return chr(b)
-
-# temp
-def varint_encode(number):
-    ''' '''
-    buffer = b''
-    while True:
-        towrite = number & 0x7f
-        number >>= 7
-        if number:
-            buffer += _byte(towrite | 0x80)
-        else:
-            buffer += _byte(towrite)
-            break
-    return buffer
+# # temp
+# def varint_encode(number):
+#     ''' '''
+#     buffer = b''
+#     while True:
+#         towrite = number & 0x7f
+#         number >>= 7
+#         if number:
+#             buffer += _byte(towrite | 0x80)
+#         else:
+#             buffer += _byte(towrite)
+#             break
+#     return buffer

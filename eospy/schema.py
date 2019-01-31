@@ -26,8 +26,6 @@ class IntSchema(BaseSchema):
 class HexBytesSchema(StringSchema):
     missing = colander.drop
 
-class DataSchema(StringSchema): pass
-
 # Authority/permission
 class ThresholdSchema(IntSchema): pass
 
@@ -81,6 +79,23 @@ class PermissionSchema(colander.MappingSchema):
     parent = ParentSchema()
     required_auth = AuthoritySchema()
     
+# def validate_data_schema(node, value):
+#     if not isinstance(value, dict) or not isinstance(value, str):
+#         raise colander.Invalid(node, '{} is not a valid data schema'.format(value))
+
+class DataSchema(colander.SchemaType): 
+    
+    def serialize(self, node, appstruct):
+        if appstruct is colander.null:
+            return colander.null
+        impl = colander.Mapping()
+        if isinstance(appstruct, str):
+            impl = StringSchema()
+        return impl.serialize(node, appstruct)
+
+    def deserialize(self, node, cstruct):
+        return cstruct
+
 #############################
 # message actions attributes
 #############################
@@ -89,25 +104,26 @@ class ActionSchema(colander.MappingSchema):
     account = AccountNameSchema()
     name = ActionNameSchema()
     authorization = PermissionLevelsSchema()
+    # if data is there it can be a HexBytesSchema or DataSchema
     hex_data = HexBytesSchema()
-    data = DataSchema()
-    
+    data = colander.SchemaNode(DataSchema())
+
 class ActionsSchema(colander.SequenceSchema):
     action = ActionSchema()
 
 class ContextActionsSchema(colander.SequenceSchema):
-    action = ActionSchema()
     default = []
     missing = []
+    action = ActionSchema()
 
 class ExtensionSchema(colander.MappingSchema):
     type = IntSchema()
     data = HexBytesSchema()
 
 class ExtensionsSchema(colander.SequenceSchema):
-    extension = ExtensionSchema()
     default = []
     missing = []
+    extension = ExtensionSchema()
     
 #############################
 # message header attributes
@@ -210,6 +226,127 @@ class BlockInfoSchema(colander.MappingSchema):
     id = StringSchema()
     block_num = IntSchema()
     ref_block_prefix = IntSchema()
+
+#############################
+# abi
+#############################
+
+class AbiTypeSchema(colander.MappingSchema):
+    new_type_name = StringSchema()
+    type = StringSchema()
+
+class AbiTypesSchema(colander.SequenceSchema):
+    default = []
+    missing = []
+    types = AbiTypeSchema()
+
+class AbiStructFieldSchema(colander.MappingSchema):
+    name = StringSchema()
+    type = StringSchema()
+
+class AbiStructFieldsSchema(colander.SequenceSchema):
+    default = []
+    missing = []
+    fields = AbiStructFieldSchema()
+
+class AbiStructBaseSchema(StringSchema):
+    default = ""
+    missing = ""
+
+class AbiStructSchema(colander.MappingSchema):
+    name = StringSchema()
+    base = AbiStructBaseSchema()
+    fields = AbiStructFieldsSchema()
+
+class AbiStructsSchema(colander.SequenceSchema):
+    structs = AbiStructSchema()
+
+class AbiRicardianStrSchema(StringSchema):
+    required = False
+
+class AbiActionSchema(colander.MappingSchema):
+    name = StringSchema()
+    type = StringSchema()
+    ricardian_contract = AbiRicardianStrSchema
+
+class AbiActionsSchema(colander.SequenceSchema):
+    actions = AbiActionSchema()
+
+class AbiTableKey(StringSchema): pass
+    # required = False
+
+class AbiTablesKey(colander.SequenceSchema):
+    default = []
+    missing = []
+    keys = AbiTableKey()
+
+class AbiTableSchema(colander.MappingSchema):
+    name = StringSchema()
+    index_type = StringSchema()
+    key_names = AbiTablesKey()
+    key_types = AbiTablesKey()
+    type = StringSchema()
+
+class AbiTablesSchema(colander.SequenceSchema):
+    missing = []
+    default = []
+    tables = AbiTableSchema()
+
+class AbiRicardianClauseSchema(colander.MappingSchema):
+    id = StringSchema()
+    body = StringSchema()
+
+class AbiRicardianClausesSchema(colander.SequenceSchema):
+    required = False
+    missing = []
+    default = []
+    rcs = AbiRicardianClauseSchema()
+
+# placeholder
+class AbiErrorMessageSchema(StringSchema): 
+    required = False
+
+class AbiErrorMessagesSchema(colander.SequenceSchema):
+    default = []
+    missing = []
+    required = False
+    error_messages = AbiErrorMessageSchema()
+
+# placeholder
+class AbiExtensionSchema(StringSchema): 
+    required = False
+
+class AbiExtensionsSchema(colander.SequenceSchema):
+    default = []
+    missing = []
+    required = False
+    abi_extensions = AbiExtensionSchema()
+
+# placeholder
+class AbiVariantSchema(StringSchema): 
+    required = False
+
+class AbiVariantsSchema(colander.SequenceSchema):
+    default = []
+    missing = []
+    required = False
+    variants = AbiVariantSchema()
+
+class AbiCommentSchema(StringSchema): 
+    required = False
+    default = ""
+    missing = ""
+
+class AbiSchema(colander.MappingSchema):
+    version = StringSchema()
+    types = AbiTypesSchema()
+    structs = AbiStructsSchema()
+    actions = AbiActionsSchema()
+    tables = AbiTablesSchema()
+    ricardian_clauses = AbiRicardianClausesSchema()
+    error_messages = AbiErrorMessagesSchema()
+    abi_extensions = AbiExtensionsSchema()
+    variants = AbiVariantsSchema()
 
 #############################
 # eosytest
