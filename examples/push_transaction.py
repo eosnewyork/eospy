@@ -25,6 +25,8 @@ data=ce.abi_json_to_bin(payload['account'],payload['name'],arguments)
 payload['data']=data['binargs']
 #final transaction formed
 trx = {"actions": [payload]}
+import datetime as dt
+trx['expiration'] = str((dt.datetime.utcnow() + dt.timedelta(seconds=60)).replace(tzinfo=pytz.UTC))
 # use a string or EOSKey for push_transaction
 key = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 # use EOSKey:
