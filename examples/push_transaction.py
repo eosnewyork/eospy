@@ -1,5 +1,7 @@
 import eospy.cleos
 import os
+import pytz
+
 # this url is to a testnet that may or may not be working.
 # We suggest using a different testnet such as kylin or jungle
 # 
