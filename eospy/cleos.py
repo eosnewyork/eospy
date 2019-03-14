@@ -12,13 +12,11 @@ import os
 
 class Cleos :
     
-    def __init__(self, url='http://localhost:8888', wallet_url='http://localhost:8888', version='v1') :
+    def __init__(self, url='http://localhost:8888', version='v1') :
         ''' '''
         self._prod_url = url
-        self._wallet_url = wallet_url
         self._version = version
         self._dynurl = DynamicUrl(url=self._prod_url, version=self._version)
-        self._walleturl = DynamicUrl(url=self._wallet_url, version=self._version)
     
     #####
     # private functions
@@ -35,27 +33,7 @@ class Cleos :
         cmd = eval('self._dynurl.{0}'.format(func))
         url = cmd.create_url()
         return cmd.post_url(url, **kwargs)
-    
-    def get_wallet(self, func='', **kwargs) :
-        ''' '''
-        get_cmd = eval('self._walleturl.{0}'.format(func))
-        url = get_cmd.create_url()
-        return get_cmd.get_url(url, **kwargs)
 
-    def post_wallet(self, func='', **kwargs) :
-        ''' '''
-        post_cmd = eval('self._walleturl.{0}'.format(func))
-        url = post_cmd.create_url()
-        return post_cmd.get_url(url, **kwargs)
-    
-    #
-    # wallet functions
-    #
-    def wallet_unlock(self, password, name="default",):
-        if not password:
-            raise NotImplementedError
-        return self.post_wallet('wallet.unlock', params=[name,password], json=None)
-    
     #####
     # get methods
     #####
@@ -325,12 +303,3 @@ class Cleos :
         json = {}
         return self.post()
 
-    #####
-    # wallet functions
-    #####
-    def wallet_list(self) :
-        return self.get_wallet('wallet.list_wallets')
-    
-    def wallet_open(self, name='default') :
-        return self.get_wallet('wallet.open', params=None, json={"wallet_name":name})
-    
