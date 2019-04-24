@@ -1,4 +1,5 @@
 import eospy.cleos
+import eospy.keys
 import os
 import pytz
 
@@ -30,10 +31,9 @@ trx = {"actions": [payload]}
 import datetime as dt
 trx['expiration'] = str((dt.datetime.utcnow() + dt.timedelta(seconds=60)).replace(tzinfo=pytz.UTC))
 # use a string or EOSKey for push_transaction
-key = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+# key = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
 # use EOSKey:
-# import eospy.keys
-# key = eospy.keys.EOSKey('5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3')
+key = eospy.keys.EOSKey('5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3')
 resp = ce.push_transaction(trx, key, broadcast=True)
 print('------------------------------------------------')
 print(resp)

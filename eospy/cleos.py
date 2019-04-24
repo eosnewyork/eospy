@@ -4,6 +4,7 @@
 
 from .dynamic_url import DynamicUrl
 from .keys import EOSKey, check_wif
+from .signer import Signer
 from .utils import sig_digest, parse_key_file
 from .types import EOSEncoder, Transaction, PackedTransaction
 from .exceptions import EOSKeyError, EOSMsigInvalidProposal
@@ -131,19 +132,19 @@ class Cleos :
         digest = sig_digest(trx.encode(), chain_info['chain_id'])
         # sign the transaction
         signatures = []
-        if os.path.isfile(keys):
-             keys = parse_key_file(keys, first_key=False)
-        elif not isinstance(keys, list) :
+        # if os.path.isfile(keys):
+        #      keys = parse_key_file(keys, first_key=False)
+        if not isinstance(keys, list):
+            if not isinstance(keys, Signer):
+                raise EOSKeyError('Must pass a class that extends the eospy.Signer class')
             keys = [keys]
 
         for key in keys :
-            if check_wif(key) :
-                k = EOSKey(key)
-            elif isinstance(key, EOSKey) :
-                k = key
-            else :
-                raise EOSKeyError('Must pass a WIF string or EOSKey')
-            signatures.append(k.sign(digest))
+            # if check_wif(key) :
+            #     k = EOSKey(key)
+            if not isinstance(key, Signer) :
+                raise EOSKeyError('Must pass a class that extends the eospy.Signer class')               
+            signatures.append(key.sign(digest))
         # build final trx
         final_trx = {
                 'compression' : compression,

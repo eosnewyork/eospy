@@ -4,6 +4,7 @@ import ecdsa
 import re
 from binascii import hexlify, unhexlify
 from .utils import sha256, ripemd160, str_to_hex, hex_to_int
+from .signer import Signer
 import hashlib
 import time
 import struct
@@ -17,7 +18,7 @@ def check_wif(key) :
             pass
     return False
 
-class EOSKey :
+class EOSKey(Signer) :
     def __init__(self, private_str='') :
         ''' '''
         if private_str :

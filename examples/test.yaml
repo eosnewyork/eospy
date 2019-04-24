@@ -16,6 +16,16 @@ tests: # tests to run and whether they should fail or not
           quantity: "100.0000 EOS"
           memo: "test1"
         exception: no
+    queries:
+      - query: get_table
+        parameters: 
+          code: eosio
+          scope: eosio
+          table: producers
+          lower_bound: bpa1
+          limit: 1
+        results:
+          - owner: bap1
   - name: test_transfer_fail
     actions:
       - action: transfer
