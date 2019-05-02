@@ -123,12 +123,20 @@ class Cleos :
     #####
     # transactions
     #####
-    def push_transaction(self, transaction, keys, broadcast=True, compression='none', timeout=30) :
+    def push_transaction(self, transaction, keys, broadcast=True, compression='none', timeout=30,
+                         fully_offline=False, chain_id=None) :
         ''' parameter keys can be a list of WIF strings or EOSKey objects or a filename to key file'''
-        chain_info,lib_info = self.get_chain_lib_info()
-        trx = Transaction(transaction, chain_info, lib_info)
+        if fully_offline:
+            assert transaction.get('ref_block_num') and transaction.get('ref_block_prefix'), \
+                'ref_block_num or ref_block_prefix must be provided'
+            trx = Transaction(transaction, dict(), dict())
+        else:
+            chain_info,lib_info = self.get_chain_lib_info()
+            chain_id = chain_info['chain_id']
+            trx = Transaction(transaction, chain_info, lib_info)
+
         #encoded = trx.encode()
-        digest = sig_digest(trx.encode(), chain_info['chain_id'])
+        digest = sig_digest(trx.encode(), chain_id)
         # sign the transaction
         signatures = []
         if os.path.isfile(keys):
