@@ -184,7 +184,7 @@ class EOSKey :
         # pack
         sigstr = struct.pack('<B', i) + sig
         # encode
-        return 'SIG_K1_' + self._check_encode(hexlify(sigstr), 'K1').decode()
+        return 'SIG_K1_' + self._check_encode(hexlify(sigstr), 'K1')
 
     def verify(self, encoded_sig, digest) :
         ''' '''
