@@ -106,12 +106,12 @@ class Cleos :
         '''
         return self.post('history.get_transaction', params=None, json={'id': trans_id}, timeout=timeout)
 
-    def get_table(self, code, scope, table, table_key='', lower_bound='', upper_bound='', limit=10, timeout=30) :
+    def get_table(self, code, scope, table, index_position='',key_type='', lower_bound='', upper_bound='', limit=10, timeout=30) :
         '''
         POST /v1/chain/get_table_rows
-        {"json":true,"code":"eosio","scope":"eosio","table":"producers","table_key":"","lower_bound":"","upper_bound":"","limit":10}
+        {"json":true,"code":"eosio","scope":"eosio","table":"producers","index_position":"","key_type":"name","lower_bound":"","upper_bound":"","limit":10}
         '''
-        json = {"json":True, "code":code, "scope":scope, "table":table, "table_key":table_key, "lower_bound": lower_bound, "upper_bound": upper_bound, "limit": limit}
+        json = {"json":True, "code":code, "scope":scope, "table":table, "key_type":key_type, "index_position":index_position, "lower_bound": lower_bound, "upper_bound": upper_bound, "limit": limit}
         return self.post('chain.get_table_rows', params=None, json=json, timeout=timeout)
 
     def get_producers(self, lower_bound='', limit=50, timeout=30) :
