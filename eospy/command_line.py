@@ -43,7 +43,8 @@ def cleos():
     #table_parser.add_argument('contract', type=str, help='The contract who owns the table (required)')
     #table_parser.add_argument('scope', type=str, help='The scope within the contract in which the table is found (required)')
     #table_parser.add_argu`ment('table', type=str, help='The name of the table as specified by the contract abi (required)')
-    table_parser.add_argument('--table-key', type=str, action='store', default="", dest='table_key', help='(deprecated) The maximum number of rows to return')
+    table_parser.add_argument('--index-position', type=str, action='store', default="", dest='index_position', help='Position of the index used, accepted parameters')
+    table_parser.add_argument('--key-type', type=str, action='store', default="", dest='key_type', help='Type of key specified by index_position')
     table_parser.add_argument('--lower-bound', type=str, action='store', default=0, dest='lower_bound', help='The name of the key to index by as defined by the abi, defaults to primary key')
     table_parser.add_argument('--upper-bound', type=str, action='store', default=-1, dest='upper_bound')
     table_parser.add_argument('--limit', type=int, action='store', default=1000, dest='limit')
@@ -130,7 +131,7 @@ def cleos():
         elif args.get == 'abi' :
             console_print(ce.get_abi(args.account, timeout=args.timeout))
         elif args.get == 'table' :
-            table = ce.get_table(code=args.code, scope=args.scope, table=args.table, table_key=args.table_key, lower_bound=args.lower_bound, upper_bound=args.upper_bound, limit=args.limit, timeout=args.timeout)
+            table = ce.get_table(code=args.code, scope=args.scope, table=args.table, index_position=args.index_position, key_type=args.key_type, lower_bound=args.lower_bound, upper_bound=args.upper_bound, limit=args.limit, timeout=args.timeout)
             console_print(table)
         elif args.get == 'currency' :
             if args.type == 'balance' :
