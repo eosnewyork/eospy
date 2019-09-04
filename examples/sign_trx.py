@@ -5,7 +5,7 @@ setup_str = '''
 from eospy.cleos import EOSKey
 import binascii
 k = EOSKey("5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")
-digest=binascii.hexlify("This is a test string1")
+digest=binascii.hexlify(b"This is a test string1")
 '''
 number=10
 key_results=timeit.timeit('k=EOSKey("5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3")',
