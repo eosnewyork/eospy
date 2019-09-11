@@ -262,12 +262,14 @@ class AbiStructsSchema(colander.SequenceSchema):
     structs = AbiStructSchema()
 
 class AbiRicardianStrSchema(StringSchema):
+    default = ""
+    missing = ""
     required = False
 
 class AbiActionSchema(colander.MappingSchema):
     name = StringSchema()
     type = StringSchema()
-    ricardian_contract = AbiRicardianStrSchema
+    ricardian_contract = AbiRicardianStrSchema()
 
 class AbiActionsSchema(colander.SequenceSchema):
     actions = AbiActionSchema()

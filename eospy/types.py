@@ -1,5 +1,9 @@
 
-from .schema import ActionSchema, AbiSchema, PermissionLevelSchema, ChainInfoSchema, BlockInfoSchema, TransactionSchema
+from .schema import (ActionSchema, PermissionLevelSchema, ChainInfoSchema, BlockInfoSchema, 
+                    TransactionSchema,
+                    AbiRicardianClauseSchema, AbiTableSchema, AbiSchema, AbiTypeSchema, 
+                    AbiActionSchema, AbiStructFieldSchema, AbiStructSchema, AbiErrorMessagesSchema,
+                    AbiExtensionsSchema, AbiVariantsSchema)
 import datetime as dt
 import pytz
 from .utils import sha256, string_to_name, name_to_string, int_to_hex, hex_to_int
@@ -186,6 +190,99 @@ class Asset :
 
     # def decode(self, buf):
 
+class AbiType(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiTypeSchema()
+        super(AbiTypes, self).__init__(d)
+    
+    def encode(self):
+        new_type_name = self._encode_buffer(self.new_type_name)
+        type = self._encode_buffer(self.type)
+        return '{}{}'.format(new_type_name, type)
+
+class AbiStructField(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiStructFieldSchema()
+        super(AbiStructField, self).__init__(d)
+    
+    def encode(self):
+        name = self._encode_buffer(self.name)
+        type = self._encode_buffer(self.type)
+        return '{}{}'.format(name, type)
+
+class AbiStruct(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiStructSchema()
+        super(AbiStruct, self).__init__(d)
+        self.fields = self._create_obj_array(self.fields, AbiStructField)
+    
+    def encode(self):
+        name = self._encode_buffer(self.name)
+        base = self._encode_buffer(self.base)
+        fields = self._encode_buffer(self.fields)
+        return '{}{}{}'.format(name, base, fields)
+
+class AbiAction(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiActionSchema()
+        super(AbiAction, self).__init__(d)
+    
+    def encode(self):
+        name = self._encode_buffer(Name(self.name))
+        type = self._encode_buffer(self.type)
+        ricardian_contract = self._encode_buffer(self.ricardian_contract)
+        return '{}{}{}'.format(name, type, ricardian_contract)
+
+class AbiTable(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiTableSchema()
+        super(AbiTable, self).__init__(d)
+    
+    def encode(self):
+        name = self._encode_buffer(Name(self.name))
+        index_type = self._encode_buffer(self.index_type)
+        key_names = self._encode_buffer(self.key_names)
+        key_types = self._encode_buffer(self.key_types)
+        type = self._encode_buffer(self.type)
+        return '{}{}{}{}{}'.format(name, index_type, key_names, key_types, type)
+
+
+class AbiRicardianClauses(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiTableSchema()
+        super(AbiRicardianClauses, self).__init__(d)
+    
+    def encode(self):
+        id = self._encode_buffer(self.id)
+        body = self._encode_buffer(self.body)
+        return '{}{}'.format(id, body)
+
+class AbiErrorMessages(BaseObject):
+    # TODO implement encode
+    def __init__(self, d):
+        self._validator = AbiErrorMessagesSchema()
+        super(AbiErrorMessages, self).__init__(d)
+    
+    def encode():
+        raise NotImplementedError
+
+class AbiExtensions(BaseObject):
+    # TODO implement encode
+    def __init__(self, d):
+        self._validator = AbiExtensionsSchema()
+        super(AbiExtensions, self).__init__(d)
+    
+    def encode():
+        raise NotImplementedError
+
+class AbiVariants(BaseObject):
+    # TODO implement encode
+    def __init__(self, d):
+        self._validator = AbiVariantsSchema()
+        super(AbiVariants, self).__init__(d)
+    
+    def encode():
+        raise NotImplementedError
 
 class Abi(BaseObject):
     _abi_map = {
@@ -222,6 +319,14 @@ class Abi(BaseObject):
         ''' '''
         self._validator = AbiSchema()
         super(Abi, self).__init__(d)
+        self.types = self._create_obj_array(self.types, AbiType)
+        self.structs = self._create_obj_array(self.structs, AbiStruct)
+        self.actions = self._create_obj_array(self.actions, AbiAction)
+        self.tables = self._create_obj_array(self.tables, AbiTable)
+        self.ricardian_clauses = self._create_obj_array(self.ricardian_clauses, AbiRicardianClauses)
+        self.error_messages = self._create_obj_array(self.error_messages, AbiErrorMessages)
+        self.abi_extensions = self._create_obj_array(self.abi_extensions, AbiExtensions)
+        self.variants = self._create_obj_array(self.variants, AbiVariants)
 
     def get_action(self, name):
         ''' '''
@@ -260,6 +365,27 @@ class Abi(BaseObject):
                 raise EOSUnknownObj("{} is not a known abi type".format(field['type']))
         return parameters
 
+    def get_raw(self):
+        version = self._encode_buffer(self.version)
+        # encode types
+        types = self._encode_buffer(self.types)
+        structs = self._encode_buffer(self.structs)
+        actions = self._encode_buffer(self.actions)
+        tables = self._encode_buffer(self.tables)
+        ricardian_clauses = self._encode_buffer(self.ricardian_clauses)
+        error_messages = self._encode_buffer(self.error_messages)
+        abi_extensions = self._encode_buffer(self.abi_extensions)
+        variants = self._encode_buffer(self.variants)
+        return '{}{}{}{}{}{}{}{}{}'.format(version, types, structs, actions, tables, 
+                                                ricardian_clauses, error_messages, abi_extensions, 
+                                                variants)
+
+    def encode(self):
+        ''' '''
+        raw_abi = self.get_raw()
+        # divide by two because it is hex
+        length = self._encode_buffer(VarUInt(len(raw_abi)/2))
+        return length + raw_abi
 
 class Authorization(BaseObject):
     def __init__(self, d) :
@@ -525,6 +651,7 @@ class EOSBuffer :
 
     def decode(self, objType, buf=None):
         leftover = ""
+        print(type(objType))
         if not buf:
             buf = self._value
         if isinstance(objType, UInt32):
@@ -597,7 +724,16 @@ class EOSBuffer :
             return self._write_number(val, 'l')
         elif(isinstance(val, Authorization)) :
             return val.encode()
-        elif(isinstance(val, Action)) :
+        elif(isinstance(val, Action) or 
+             isinstance(val, AbiStruct) or 
+             isinstance(val, AbiStructField) or 
+             isinstance(val, AbiType) or
+             isinstance(val, AbiAction) or 
+             isinstance(val, AbiTable) or
+             isinstance(val, AbiRicardianClauses) or 
+             isinstance(val, AbiErrorMessages) or
+             isinstance(val, AbiExtensions) or 
+             isinstance(val, AbiVariants)):
             return val.encode()
         elif(isinstance(val, list)) :
             buf = self._write_varuint(VarUInt(len(val))) 
