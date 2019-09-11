@@ -30,3 +30,11 @@ class EOSUnknownObj(Exception):
 class EOSAbiProcessingError(Exception):
     ''' Raised when the abi action cannot be processed '''
     pass
+
+class EOSSetSameCode(Exception):
+    ''' Raised when the code would not change on a set'''
+    pass
+
+class EOSSetSameAbi(Exception):
+    ''' Raised when the abi would not change on a set'''
+    pass
