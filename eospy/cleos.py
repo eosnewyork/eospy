@@ -200,7 +200,7 @@ class Cleos :
     #####
     # transactions
     #####
-    def push_transaction(self, transaction, keys, broadcast=True, compression='none', timeout=30) :
+    def push_transaction(self, transaction, keys, broadcast=True, compression='none', timeout=30):
         ''' parameter keys can be a list of WIF strings or EOSKey objects or a filename to key file'''
         chain_info,lib_info = self.get_chain_lib_info()
         trx = Transaction(transaction, chain_info, lib_info)
@@ -377,6 +377,5 @@ class Cleos :
         return self.push_transaction(trx, creator_privkey, broadcast=broadcast, timeout=timeout)
 
     def register_producer(self) :
-        json = {}
-        return self.post()
+        raise NotImplementedError()
 
