@@ -5,11 +5,12 @@
 from .dynamic_url import DynamicUrl
 from .keys import EOSKey, check_wif
 from .signer import Signer
-from .utils import sig_digest, parse_key_file
-from .types import EOSEncoder, Transaction, PackedTransaction
-from .exceptions import EOSKeyError, EOSMsigInvalidProposal
+from .utils import sig_digest, parse_key_file, sha256
+from .types import EOSEncoder, Transaction, PackedTransaction, Abi
+from .exceptions import (EOSKeyError, EOSMsigInvalidProposal, EOSSetSameAbi, EOSSetSameCode)
 import json
 import os
+from binascii import hexlify
 
 class Cleos :
     
@@ -67,6 +68,10 @@ class Cleos :
     def get_abi(self, acct_name, timeout=30) :
         ''' '''
         return self.post('chain.get_abi', params=None, json={'account_name' : acct_name}, timeout=timeout)
+
+    def get_raw_abi(self, acct_name, timeout=30) :
+        ''' '''
+        return self.post('chain.get_raw_abi', params=None, json={'account_name' : acct_name}, timeout=timeout)
         
     def get_actions(self, acct_name, pos=-1, offset=-20, timeout=30) :
         '''
@@ -120,6 +125,77 @@ class Cleos :
         {"json":true,"lower_bound":"","limit":50}
         '''
         return self.post('chain.get_producers', params=None, json={'json':True, 'lower_bound':lower_bound, 'limit':limit}, timeout=timeout)
+
+    #####
+    # set
+    #####
+
+    def set_abi(self, account, permission, abi_file, key, broadcast=True, timeout=30):
+        current_abi = Abi(self.get_abi(account)['abi'])
+        current_sha = sha256(current_abi.get_raw().encode('utf-8'))
+        with open(abi_file) as rf:
+            abi = json.load(rf)
+            new_abi = Abi(abi) 
+            # hex_abi = hexlify(abi)
+            new_sha = sha256(new_abi.get_raw().encode('utf-8'))
+            if current_sha == new_sha:
+                raise EOSSetSameAbi()
+            # generate trx
+            arguments = {
+                "account": account,  
+                "abi": new_abi.get_raw()
+            }
+            payload = {
+                "account": "eosio",
+                "name": "setabi",
+                "authorization": [{
+                    "actor": account,
+                    "permission": permission,
+                }],
+            }
+            # Converting payload to binary
+            data = self.abi_json_to_bin(payload['account'], payload['name'], arguments)
+            # Inserting payload binary form as "data" field in original payload
+            payload['data'] = data['binargs']
+            trx = {"actions": [payload]}
+            sign_key = EOSKey(key)
+            return self.push_transaction(trx, sign_key, broadcast=broadcast)
+
+
+    def set_code(self, account, permission, code_file, key, broadcast=True, timeout=30):
+        current_code = self.get_code(account)
+        # print(current_code)
+        # print(type(current_code))
+        current_sha = current_code['code_hash']
+        with open(code_file, 'rb') as rf:
+            wasm = rf.read()
+            hex_wasm = hexlify(wasm)
+            new_sha = sha256(hex_wasm)
+            if current_sha == new_sha:
+                raise EOSSetSameCode()
+            # generate trx
+            arguments = {
+                "account": account,
+                "vmtype": 0,
+                "vmversion": 0,
+                "code": hex_wasm.decode('utf-8')
+            }
+            payload = {
+                "account": "eosio",
+                "name": "setcode",
+                "authorization": [{
+                    "actor": account,
+                    "permission": permission,
+                }],
+            }
+            # Converting payload to binary
+            data = self.abi_json_to_bin(payload['account'], payload['name'], arguments)
+            # Inserting payload binary form as "data" field in original payload
+            payload['data'] = data['binargs']
+            trx = {"actions": [payload]}
+            sign_key = EOSKey(key)
+            return self.push_transaction(trx, sign_key, broadcast=broadcast)
+        
 
     #####
     # transactions
