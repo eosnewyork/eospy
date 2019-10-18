@@ -262,12 +262,14 @@ class AbiStructsSchema(colander.SequenceSchema):
     structs = AbiStructSchema()
 
 class AbiRicardianStrSchema(StringSchema):
+    default = ""
+    missing = ""
     required = False
 
 class AbiActionSchema(colander.MappingSchema):
     name = StringSchema()
     type = StringSchema()
-    ricardian_contract = AbiRicardianStrSchema
+    ricardian_contract = AbiRicardianStrSchema()
 
 class AbiActionsSchema(colander.SequenceSchema):
     actions = AbiActionSchema()
@@ -360,11 +362,37 @@ class TestEnvSchema(colander.MappingSchema):
     url = StringSchema()
 
 class TestAuthSchema(colander.MappingSchema):
+    required = False
+    default = {}
+    missing = {}
     actor = StringSchema()
     permission = StringSchema()
     key = StringSchema()
 
+class TestResultsSchema(colander.SequenceSchema):
+    results = StringSchema()
+
+class TestQuerySchema(colander.MappingSchema):
+    query = StringSchema()
+    parameters = colander.SchemaNode(
+        colander.Mapping(unknown='preserve'),
+        validator=test_param_validator
+    )
+    results = TestResultsSchema()
+
+class TestQueriesSchema(colander.SequenceSchema):
+    required = False
+    missing = []
+    default = []
+    queries = TestQuerySchema()
+
+class TestCommentSchema(colander.String):
+    required = False
+    missing = ""
+    default = ""
+
 class TestActionSchema(colander.MappingSchema):
+    comment = TestCommentSchema()
     action = StringSchema()
     contract = StringSchema()
     authorization = TestAuthSchema()
@@ -373,12 +401,14 @@ class TestActionSchema(colander.MappingSchema):
         validator=test_param_validator
     )
     exception = BooleanSchema()
+    queries = TestQueriesSchema()
 
 class TestActionsSchema(colander.SequenceSchema):
     actions = TestActionSchema()
 
 class TestSchema(colander.MappingSchema):
     name = StringSchema()
+    authorization = TestAuthSchema()
     actions = TestActionsSchema()
 
 class TestsSchema(colander.SequenceSchema):

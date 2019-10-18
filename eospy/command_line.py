@@ -2,11 +2,25 @@ import argparse
 from .cleos import Cleos
 from .testeos import TestEos
 from .utils import parse_key_file
-from .exceptions import InvalidPermissionFormat
+from .exceptions import InvalidPermissionFormat, EOSSetSameAbi, EOSSetSameCode
 import json
 
 def console_print(data):
     print(json.dumps(data, indent=4))
+
+def set_abi(ce, account, permission, abi, key, broadcast, timeout):
+    print('setting abi file {}'.format(abi))
+    try:
+        console_print(ce.set_abi(account, permission, abi, key, broadcast=broadcast, timeout=timeout))
+    except EOSSetSameAbi:
+        print('Skipping set abi because the new abi is the same as the existing abi')
+
+def set_code(ce, account, permission, code, key, broadcast, timeout):
+    print('setting code file {}'.format(code))
+    try:
+        console_print(ce.set_code(account, permission, code, key, broadcast=broadcast, timeout=timeout))
+    except EOSSetSameCode:
+        print('Skipping set code because the new code is the same as the existing code')
 
 def cleos():
     parser = argparse.ArgumentParser(description='Command Line Interface to EOSIO via python')
@@ -34,6 +48,7 @@ def cleos():
     # abi
     abi_parser = get_subparsers.add_parser('abi')
     abi_parser.add_argument('--account','-a', type=str, action='store', required=True, dest='account')
+    abi_parser.add_argument('--raw', action='store_true', dest='raw')
     #abi_parser.add_argument('account', type=str)
     # table
     table_parser = get_subparsers.add_parser('table')
@@ -43,7 +58,8 @@ def cleos():
     #table_parser.add_argument('contract', type=str, help='The contract who owns the table (required)')
     #table_parser.add_argument('scope', type=str, help='The scope within the contract in which the table is found (required)')
     #table_parser.add_argu`ment('table', type=str, help='The name of the table as specified by the contract abi (required)')
-    table_parser.add_argument('--table-key', type=str, action='store', default="", dest='table_key', help='(deprecated) The maximum number of rows to return')
+    table_parser.add_argument('--index', type=int, action='store', default=1, dest='index_position', help='Index number')
+    table_parser.add_argument('--key-type', type=str, action='store', default="i64", dest='key_type', help='The key type of --index')
     table_parser.add_argument('--lower-bound', type=str, action='store', default=0, dest='lower_bound', help='The name of the key to index by as defined by the abi, defaults to primary key')
     table_parser.add_argument('--upper-bound', type=str, action='store', default=-1, dest='upper_bound')
     table_parser.add_argument('--limit', type=int, action='store', default=1000, dest='limit')
@@ -88,17 +104,21 @@ def cleos():
     push_action.add_argument('--key-file','-k', type=str, action='store', required=True, help='file containing the private key that will be used', dest='key_file')
     push_action.add_argument('--permission','-p', type=str, action='store', required=True, help='account and permission level to use, e.g \'account@permission\'', dest='permission')
     push_action.add_argument('--dont-broadcast','-d', action='store_false', default=True, help='do not broadcast the transaction to the network.', dest='broadcast')
-    # system commands
-    system_parser = subparsers.add_parser('system')
-    system_subparsers = system_parser.add_subparsers(dest='system')
     # multisig
     msig_parser = subparsers.add_parser('multisig')
     msig_subparsers = msig_parser.add_subparsers(dest='multisig')
     msig_review = msig_subparsers.add_parser('review')
     msig_review.add_argument('proposer', type=str, action='store', help='proposer name')
     msig_review.add_argument('proposal', type=str, action='store', help='proposal name')
-    # account
-    newacct_parser = system_subparsers.add_parser('newaccount')
+    # system commands
+    # listproducers
+    system_parser = subparsers.add_parser('system')
+    system_subparsers = system_parser.add_subparsers(dest='system', help='Send eosio.system contract action to the blockchain')
+    producer_sys = system_subparsers.add_parser('listproducers')
+    producer_sys.add_argument('--lower-bound', type=str, action='store', default="", dest='lower_bound')
+    producer_sys.add_argument('--limit', type=int, action='store', default=50, dest='limit')
+    # new account
+    newacct_parser = system_subparsers.add_parser('newaccount', help='create a new account')
     newacct_parser.add_argument('creator', type=str, action='store')
     newacct_parser.add_argument('creator_key', type=str, action='store')
     newacct_parser.add_argument('account', type=str, action='store')
@@ -110,6 +130,31 @@ def cleos():
     newacct_parser.add_argument('--permission','-p', type=str, action='store', default='active', dest='permission')
     newacct_parser.add_argument('--transfer', action='store_true', default=False, dest='transfer')
     newacct_parser.add_argument('--dont-broadcast','-d', action='store_false', default=True, dest='broadcast')
+    # set
+    set_parser = subparsers.add_parser('set')
+    set_subparsers = set_parser.add_subparsers(dest='set', help='Set or update blockchain state')
+    # abi
+    set_abi_parser = set_subparsers.add_parser('abi')
+    set_abi_parser.add_argument('account', type=str, action='store', help='The account to set code for')
+    set_abi_parser.add_argument('abi', type=str, action='store', help='The fullpath containing the contract abi')
+    set_abi_parser.add_argument('key', type=str, action='store', help='Key to sign ')
+    set_abi_parser.add_argument('--permission','-p', type=str, action='store', default='active', dest='permission')
+    set_abi_parser.add_argument('--dont-broadcast','-d', action='store_false', default=True, dest='broadcast')
+    # code
+    set_code_parser = set_subparsers.add_parser('code')
+    set_code_parser.add_argument('account', type=str, action='store', help='The account to set abi for')
+    set_code_parser.add_argument('code', type=str, action='store', help='The fullpath containing the contract code')
+    set_code_parser.add_argument('key', type=str, action='store', help='Key to sign the transaction')
+    set_code_parser.add_argument('--permission','-p', type=str, action='store', default='active', dest='permission')
+    set_code_parser.add_argument('--dont-broadcast','-d', action='store_false', default=True, dest='broadcast')
+    # contract
+    set_contract_parser = set_subparsers.add_parser('contract')
+    set_contract_parser.add_argument('account', type=str, action='store', help='The account to set abi for')
+    set_contract_parser.add_argument('code', type=str, action='store', help='The fullpath containing the contract code')
+    set_contract_parser.add_argument('abi', type=str, action='store', help='The fullpath containing the contract abo')
+    set_contract_parser.add_argument('key', type=str, action='store', help='Key to sign the transaction')
+    set_contract_parser.add_argument('--permission','-p', type=str, action='store', default='active', dest='permission')
+    set_contract_parser.add_argument('--dont-broadcast','-d', action='store_false', default=True, dest='broadcast')
     # process args
     args = parser.parse_args()
     # 
@@ -128,10 +173,21 @@ def cleos():
         elif args.get == 'code' :
             console_print(ce.get_code(args.account, timeout=args.timeout))
         elif args.get == 'abi' :
-            console_print(ce.get_abi(args.account, timeout=args.timeout))
+            if args.raw:
+                console_print(ce.get_raw_abi(args.account, timeout=args.timeout))
+            else:
+                console_print(ce.get_abi(args.account, timeout=args.timeout))
         elif args.get == 'table' :
-            table = ce.get_table(code=args.code, scope=args.scope, table=args.table, table_key=args.table_key, lower_bound=args.lower_bound, upper_bound=args.upper_bound, limit=args.limit, timeout=args.timeout)
-            console_print(table)
+            console_print(ce.get_table(code=args.code, 
+                                       scope=args.scope, 
+                                       table=args.table, 
+                                       index_position=args.index_position, 
+                                       key_type=args.key_type,
+                                       lower_bound=args.lower_bound, 
+                                       upper_bound=args.upper_bound, 
+                                       limit=args.limit, 
+                                       timeout=args.timeout))
+            
         elif args.get == 'currency' :
             if args.type == 'balance' :
                 if args.account :
@@ -190,6 +246,17 @@ def cleos():
                     wf.write(priv_key + '\n')
                     wf.write(pub_key + '\n')
                 print("Wrote keys to {}".format(args.key_file))
+    # SET
+    elif args.subparser == 'set':
+        if args.set == 'abi':
+            set_abi(ce, args.account, args.permission, args.abi, args.key, broadcast=args.broadcast, timeout=args.timeout)
+        elif args.set == 'code':
+            set_code(ce, args.account, args.permission, args.code, args.key, broadcast=args.broadcast, timeout=args.timeout)
+            pass
+        elif args.set == 'contract':
+            set_abi(ce, args.account, args.permission, args.abi, args.key, broadcast=args.broadcast, timeout=args.timeout)
+            set_code(ce, args.account, args.permission, args.code, args.key, broadcast=args.broadcast, timeout=args.timeout)
+            pass
     # SYSTEM
     elif args.subparser == 'system' :
         if args.system == 'newaccount' :
@@ -197,6 +264,9 @@ def cleos():
                                      stake_net=args.stake_net, stake_cpu=args.stake_cpu, ramkb=args.ramkb, 
                                      permission=args.permission, transfer=args.transfer, broadcast=args.transfer, 
                                      timeout=args.timeout)
+            console_print(resp)
+        elif args.system == 'listproducers':
+            resp = ce.get_producers(lower_bound=args.lower_bound, limit=args.limit)
             console_print(resp)
 
 def testeos(): 

@@ -1,8 +1,12 @@
 
-from .schema import ActionSchema, AbiSchema, PermissionLevelSchema, ChainInfoSchema, BlockInfoSchema, TransactionSchema
+from .schema import (ActionSchema, PermissionLevelSchema, ChainInfoSchema, BlockInfoSchema, 
+                    TransactionSchema,
+                    AbiRicardianClauseSchema, AbiTableSchema, AbiSchema, AbiTypeSchema, 
+                    AbiActionSchema, AbiStructFieldSchema, AbiStructSchema, AbiErrorMessagesSchema,
+                    AbiExtensionsSchema, AbiVariantsSchema)
 import datetime as dt
 import pytz
-from .utils import sha256, string_to_name, name_to_string, int_to_hex, hex_to_int
+from .utils import sha256, string_to_name, name_to_string, int_to_hex, hex_to_int, char_subtraction
 from .exceptions import EOSBufferInvalidType, EOSInvalidSchema, EOSUnknownObj, EOSAbiProcessingError
 import json
 import binascii
@@ -157,12 +161,14 @@ class Action(BaseObject) :
         return '{}{}{}{}'.format(acct, name, auth, data)
 
 class Asset :
-    def __init__(self, amt=0.0000, sym='EOS') :
-        self.amount = amt
-        self.symbol = sym
+    def __init__(self, value, precision=4) :
+        # self.amount = amt
+        # self.symbol = sym
+        # self.precision = precision
+        self.from_string(value)
 
     def __str__(self) :
-        return '{0:.4f} {1}'.format(self.amount, self.symbol)
+        return '{amount:.{precision}f} {symbol}'.format(amount=self.amount, symbol=self.symbol, precision=self.precision)
         
     def __add__(self, other) :
         if self.symbol != other.symbol :
@@ -181,11 +187,125 @@ class Asset :
         try :
             self.amount = float(splt[0])
             self.symbol = splt[1]
+            self.precision = len(splt[0].split(".")[1])
         except IndexError:
             raise IndexError('Invalid string format given. Must be in the formst <float> <currency_type>')
 
-    # def decode(self, buf):
+    def _string_to_symbol(self):
+        ''' '''
+        rslt = 0
+        cnt = 0
+        while cnt < len(self.symbol):
+            letter = self.symbol[cnt]
+            if letter >= 'A' or letter <= 'Z':
+                l = ord(letter)
+                rslt |= (UInt64(l) << (8*(cnt+1)))
+            else:
+                raise ValueError("{} contains an invalid symbol. Must be [A-Z].".format(self.symbol))
+            
+            cnt += 1
+        rslt |= UInt64(self.precision)
+        return EOSBuffer(UInt64(rslt)).encode()
 
+    def encode(self):
+        ''' '''
+        power = '1'.ljust(self.precision + len('1'), '0')
+        amount = EOSBuffer(UInt64(self.amount * UInt64(power))).encode()
+        symbol = self._string_to_symbol()
+        return '{amount}{symbol}'.format(amount=amount, symbol=symbol)
+
+class AbiType(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiTypeSchema()
+        super(AbiTypes, self).__init__(d)
+    
+    def encode(self):
+        new_type_name = self._encode_buffer(self.new_type_name)
+        type = self._encode_buffer(self.type)
+        return '{}{}'.format(new_type_name, type)
+
+class AbiStructField(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiStructFieldSchema()
+        super(AbiStructField, self).__init__(d)
+    
+    def encode(self):
+        name = self._encode_buffer(self.name)
+        type = self._encode_buffer(self.type)
+        return '{}{}'.format(name, type)
+
+class AbiStruct(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiStructSchema()
+        super(AbiStruct, self).__init__(d)
+        self.fields = self._create_obj_array(self.fields, AbiStructField)
+    
+    def encode(self):
+        name = self._encode_buffer(self.name)
+        base = self._encode_buffer(self.base)
+        fields = self._encode_buffer(self.fields)
+        return '{}{}{}'.format(name, base, fields)
+
+class AbiAction(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiActionSchema()
+        super(AbiAction, self).__init__(d)
+    
+    def encode(self):
+        name = self._encode_buffer(Name(self.name))
+        type = self._encode_buffer(self.type)
+        ricardian_contract = self._encode_buffer(self.ricardian_contract)
+        return '{}{}{}'.format(name, type, ricardian_contract)
+
+class AbiTable(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiTableSchema()
+        super(AbiTable, self).__init__(d)
+    
+    def encode(self):
+        name = self._encode_buffer(Name(self.name))
+        index_type = self._encode_buffer(self.index_type)
+        key_names = self._encode_buffer(self.key_names)
+        key_types = self._encode_buffer(self.key_types)
+        type = self._encode_buffer(self.type)
+        return '{}{}{}{}{}'.format(name, index_type, key_names, key_types, type)
+
+class AbiRicardianClauses(BaseObject):
+    def __init__(self, d):
+        self._validator = AbiRicardianClauseSchema()
+        super(AbiRicardianClauses, self).__init__(d)
+    
+    def encode(self):
+        id = self._encode_buffer(self.id)
+        body = self._encode_buffer(self.body)
+        return '{}{}'.format(id, body)
+
+class AbiErrorMessages(BaseObject):
+    # TODO implement encode
+    def __init__(self, d):
+        self._validator = AbiErrorMessagesSchema()
+        super(AbiErrorMessages, self).__init__(d)
+    
+    def encode():
+        raise NotImplementedError
+
+class AbiExtensions(BaseObject):
+    # TODO implement encode
+    def __init__(self, d):
+        self._validator = AbiExtensionsSchema()
+        super(AbiExtensions, self).__init__(d)
+    
+    def encode():
+        raise NotImplementedError
+
+class AbiVariants(BaseObject):
+    # TODO implement encode
+    def __init__(self, d):
+        self._validator = AbiVariantsSchema()
+        super(AbiVariants, self).__init__(d)
+    
+    def encode():
+        raise NotImplementedError
 
 class Abi(BaseObject):
     _abi_map = {
@@ -205,7 +325,7 @@ class Abi(BaseObject):
         'float64': Float(),  # NotImplemented
         # 'varuint32': VarUInt # NotImplemented
         # complex
-        'asset' : Asset(),
+        'asset' : Asset("1.0000 EOS"),
         # 'checksum256': str,  # NotImplemented
         # 'block_timestamp_type': UInt64, # NotImplemented
         # 'time_point': UInt64, # NotImplemented
@@ -222,24 +342,32 @@ class Abi(BaseObject):
         ''' '''
         self._validator = AbiSchema()
         super(Abi, self).__init__(d)
+        self.types = self._create_obj_array(self.types, AbiType)
+        self.structs = self._create_obj_array(self.structs, AbiStruct)
+        self.actions = self._create_obj_array(self.actions, AbiAction)
+        self.tables = self._create_obj_array(self.tables, AbiTable)
+        self.ricardian_clauses = self._create_obj_array(self.ricardian_clauses, AbiRicardianClauses)
+        self.error_messages = self._create_obj_array(self.error_messages, AbiErrorMessages)
+        self.abi_extensions = self._create_obj_array(self.abi_extensions, AbiExtensions)
+        self.variants = self._create_obj_array(self.variants, AbiVariants)
 
     def get_action(self, name):
         ''' '''
         for act in self.actions:
-            if act['name'] == name:
+            if act.name == name:
                 return act
         raise EOSUnknownObj('{} is not a valid action for this contract'.format(name))
 
     def get_actions(self):
         actions = []
         for act in self.actions:
-            actions.append(act['name'])
+            actions.append(act.name)
         return actions
 
     def get_struct(self, name):
         ''' '''
         for struct in self.structs:
-            if struct['name'] == name:
+            if struct.name == name:
                 return struct
         raise EOSUnknownObj('{} is not a valid struct for this contract'.format(name))
 
@@ -248,18 +376,59 @@ class Abi(BaseObject):
         parameters = OrderedDict()
         # get the struct
         struct = self.get_struct(name)
-        for field in struct['fields']:
-            f = field['type'].strip('[]')
+        for field in struct.fields:
+            f = field.type.strip('[]')
             if(f in self._abi_map):
                 field_type = self._abi_map[f]
                 # check if the field is a list
-                if '[]' in field['type'] :
+                if '[]' in field.type :
                     field_type = [field_type]
-                parameters[field['name']] = field_type
+                parameters[field.name] = field_type
             else :
-                raise EOSUnknownObj("{} is not a known abi type".format(field['type']))
+                raise EOSUnknownObj("{} is not a known abi type".format(field.type))
         return parameters
 
+    def get_raw(self):
+        version = self._encode_buffer(self.version)
+        # encode types
+        types = self._encode_buffer(self.types)
+        structs = self._encode_buffer(self.structs)
+        actions = self._encode_buffer(self.actions)
+        tables = self._encode_buffer(self.tables)
+        ricardian_clauses = self._encode_buffer(self.ricardian_clauses)
+        error_messages = self._encode_buffer(self.error_messages)
+        abi_extensions = self._encode_buffer(self.abi_extensions)
+        variants = self._encode_buffer(self.variants)
+        return '{}{}{}{}{}{}{}{}{}'.format(version, types, structs, actions, tables, 
+                                                ricardian_clauses, error_messages, abi_extensions, 
+                                                variants)
+
+    def encode(self):
+        ''' '''
+        raw_abi = self.get_raw()
+        # divide by two because it is hex
+        length = self._encode_buffer(VarUInt(len(raw_abi)/2))
+        return length + raw_abi
+    
+    def json_to_bin(self, name, data):
+        # act = self.get_action(name)
+        params = self.get_action_parameters(name)
+        bin_buffer = ''
+        for field in data:
+            # create EOSBuffer with value as a type of field
+            if isinstance(params[field], list):
+                field_type = type(params[field][0])
+                arr = []
+                for f in data[field]: 
+                    print(f)
+                    arr.append(field_type(f))
+                field_buffer = EOSBuffer(arr)
+            else:
+                field_type = type(params[field])
+                field_buffer = EOSBuffer(field_type(data[field]))
+
+            bin_buffer += field_buffer.encode()
+        return bin_buffer
 
 class Authorization(BaseObject):
     def __init__(self, d) :
@@ -476,9 +645,7 @@ class EOSBuffer :
         return convert_big_endian(byte_val, format)
 
     def _decode_float(self, val, format='f'):
-        print(val)
         byte_val = binascii.unhexlify(val)
-        print(byte_val)
         return struct.unpack(">{}".format(format), byte_val)
 
     def _decode_name(self, val, format='Q'):
@@ -589,15 +756,28 @@ class EOSBuffer :
             return self._write_number(val, 'H')
         elif(isinstance(val,UInt32)) :
             return self._write_number(val, 'I')
+        elif(isinstance(val,UInt64)) :
+            return self._write_number(val, 'q')
+        elif(isinstance(val, Float)):
+            return self._write_number(val, 'f')
         elif(isinstance(val,VarUInt)) :
             # temp encoding
             return self._write_varuint(val)
         elif(isinstance(val, int) or
              isinstance(val, long)) :
             return self._write_number(val, 'l')
-        elif(isinstance(val, Authorization)) :
-            return val.encode()
-        elif(isinstance(val, Action)) :
+        elif(isinstance(val, Action) or 
+             isinstance(val, AbiStruct) or 
+             isinstance(val, AbiStructField) or 
+             isinstance(val, AbiType) or
+             isinstance(val, AbiAction) or 
+             isinstance(val, AbiTable) or
+             isinstance(val, AbiRicardianClauses) or 
+             isinstance(val, AbiErrorMessages) or
+             isinstance(val, AbiExtensions) or 
+             isinstance(val, AbiVariants) or
+             isinstance(val, Asset) or
+             isinstance(val, Authorization)):
             return val.encode()
         elif(isinstance(val, list)) :
             buf = self._write_varuint(VarUInt(len(val))) 
