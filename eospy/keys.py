@@ -203,7 +203,7 @@ class EOSKey(Signer) :
             if not cnt % 10 :
                 print('Still searching for a signature. Tried {} times.'.format(cnt))        
         # encode
-        return 'SIG_K1_' + self._check_encode(hexlify(sigstr), 'K1')
+        return 'SIG_K1_' + self._check_encode(hexlify(sigstr), 'K1').decode()
 
     def verify(self, encoded_sig, digest) :
         ''' '''
