@@ -49,9 +49,14 @@ class Cleos :
         lib_info = self.get_block(chain_info['last_irreversible_block_num'], timeout=timeout)
         return chain_info, lib_info
         
-    def get_block(self, block_num, timeout=30) :
+    def get_block(self, block_num, api="chain", timeout=30) :
         ''' '''
-        return self.post('chain.get_block', params=None, json={'block_num_or_id' : block_num}, timeout=timeout)
+        if api == "chain":
+            return self.post('chain.get_block', params=None, json={'block_num_or_id' : block_num}, timeout=timeout)
+        elif api == "trace":
+            return self.post('trace_api.get_block', params=None, json={'block_num':block_num}, timeout=timeout)
+        else:
+            raise ValueError("'api' must be either 'chain' or 'trace' not '{}'".format(api))
         
     def get_account(self, acct_name, timeout=30) :
         ''' '''

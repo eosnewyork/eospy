@@ -25,7 +25,7 @@ def set_code(ce, account, permission, code, key, broadcast, timeout):
 def cleos():
     parser = argparse.ArgumentParser(description='Command Line Interface to EOSIO via python')
     parser.add_argument('--api-version','-v', type=str, default='v1', action='store', dest='api_version')
-    parser.add_argument('--url', '-u', type=str, action='store', default='https://proxy.eosnode.tools', dest='url')
+    parser.add_argument('--url', '-u', type=str, action='store', default='https://eos.greymass.com', dest='url')
     parser.add_argument('--time-out', type=int, action='store', default=30, dest='timeout')
     subparsers = parser.add_subparsers(dest='subparser')
     # get
@@ -37,6 +37,7 @@ def cleos():
     block_parser = get_subparsers.add_parser('block')
     #block_parser.add_argument('block', type=str)
     block_parser.add_argument('--block','-b', type=str, action='store', required=True, dest='block')
+    block_parser.add_argument('--api-type','-a', type=str, action='store', choices=['chain', 'trace'], default='block', dest='api_type')
     # account
     account_parser = get_subparsers.add_parser('account')
     account_parser.add_argument('--account','-a', type=str, action='store', required=True, dest='account')
