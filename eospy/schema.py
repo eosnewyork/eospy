@@ -1,90 +1,137 @@
 import colander
 
+
 class BaseSchema(colander.SchemaNode):
     required = True
 
+
 class StringSchema(BaseSchema):
     schema_type = colander.String
-    
+
 # str schemas
-class NameSchema(StringSchema): pass 
-class AccountNameSchema(NameSchema): pass
-class PermissionNameSchema(NameSchema): pass
-class ActionNameSchema(NameSchema): pass
-class TableNameSchema(NameSchema): pass 
-class ScopeNameSchema(NameSchema): pass
+
+
+class NameSchema(StringSchema):
+    pass
+
+
+class AccountNameSchema(NameSchema):
+    pass
+
+
+class PermissionNameSchema(NameSchema):
+    pass
+
+
+class ActionNameSchema(NameSchema):
+    pass
+
+
+class TableNameSchema(NameSchema):
+    pass
+
+
+class ScopeNameSchema(NameSchema):
+    pass
 
 # boolean
+
+
 class BooleanSchema(BaseSchema):
     schema_type = colander.Bool
 
 # numeric
 
+
 class IntSchema(BaseSchema):
     schema_type = colander.Int
+
 
 class HexBytesSchema(StringSchema):
     missing = colander.drop
 
 # Authority/permission
-class ThresholdSchema(IntSchema): pass
 
-class PublicKeySchema(StringSchema): pass
 
-class WeightSchema(IntSchema): pass 
+class ThresholdSchema(IntSchema):
+    pass
+
+
+class PublicKeySchema(StringSchema):
+    pass
+
+
+class WeightSchema(IntSchema):
+    pass
+
 
 class KeyWeightSchema(colander.MappingSchema):
     key = PublicKeySchema()
     weight = WeightSchema()
 
+
 class KeyWeightsSchema(colander.SequenceSchema):
     key = KeyWeightSchema()
+
 
 class PermissionLevelSchema(colander.MappingSchema):
     actor = AccountNameSchema()
     permission = PermissionNameSchema()
 
+
 class PermissionLevelsSchema(colander.SequenceSchema):
     permission = PermissionLevelSchema()
-    
+
+
 class PermissionLevelWeightSchema(colander.MappingSchema):
     permission = PermissionLevelSchema()
     weight = WeightSchema()
-    
+
+
 class PermissionLevelWeightsSchema(colander.SequenceSchema):
     permission_level = PermissionLevelWeightSchema()
 
-class WaitSecSchema(IntSchema): pass
-    
+
+class WaitSecSchema(IntSchema):
+    pass
+
+
 class WaitWeightSchema(colander.MappingSchema):
     wait_sec = WaitSecSchema()
     weight = WeightSchema()
-    
+
+
 class WaitWeightsSchema(colander.SequenceSchema):
     waits = WaitWeightSchema()
-    
+
+
 class AuthoritySchema(colander.MappingSchema):
     threshold = ThresholdSchema()
     keys = KeyWeightsSchema()
     accounts = PermissionLevelWeightsSchema()
     waits = WaitWeightsSchema()
 
+
 class PermNameSchema(BaseSchema):
     schema_type = colander.String
 
-class ParentSchema(StringSchema): pass
+
+class ParentSchema(StringSchema):
+    pass
+
 
 class PermissionSchema(colander.MappingSchema):
     perm_name = PermNameSchema()
     parent = ParentSchema()
     required_auth = AuthoritySchema()
-    
+
 # def validate_data_schema(node, value):
 #     if not isinstance(value, dict) or not isinstance(value, str):
 #         raise colander.Invalid(node, '{} is not a valid data schema'.format(value))
 
-class DataSchema(colander.SchemaType): 
-    
+
+class DataSchema(colander.SchemaType):
+
     def serialize(self, node, appstruct):
         if appstruct is colander.null:
             return colander.null
@@ -100,6 +147,7 @@ class DataSchema(colander.SchemaType):
 # message actions attributes
 #############################
 
+
 class ActionSchema(colander.MappingSchema):
     account = AccountNameSchema()
     name = ActionNameSchema()
@@ -108,45 +156,63 @@ class ActionSchema(colander.MappingSchema):
     hex_data = HexBytesSchema()
     data = colander.SchemaNode(DataSchema())
 
+
 class ActionsSchema(colander.SequenceSchema):
     action = ActionSchema()
+
 
 class ContextActionsSchema(colander.SequenceSchema):
     default = []
     missing = []
     action = ActionSchema()
 
+
 class ExtensionSchema(colander.MappingSchema):
     type = IntSchema()
     data = HexBytesSchema()
+
 
 class ExtensionsSchema(colander.SequenceSchema):
     default = []
     missing = []
     extension = ExtensionSchema()
-    
+
 #############################
 # message header attributes
 #############################
 
+
 class TimeSchema(BaseSchema):
     schema_type = colander.DateTime
 
-class RefBlockNumSchema(IntSchema): pass
-class RefBlockPrefixSchema(IntSchema): pass
+
+class RefBlockNumSchema(IntSchema):
+    pass
+
+
+class RefBlockPrefixSchema(IntSchema):
+    pass
+
+
 class NetUsageWordsSchema(IntSchema):
     default = 0
     missing = 0
+
+
 class MaxCpuUsageMsSchema(IntSchema):
     default = 0
     missing = 0
+
+
 class DelaySecSchema(IntSchema):
     default = 0
     missing = 0
 
+
 class SignaturesSchema(colander.Sequence):
     signatures = StringSchema()
-      
+
+
 class TransactionSchema(colander.MappingSchema):
     # header
     expiration = TimeSchema()
@@ -161,23 +227,29 @@ class TransactionSchema(colander.MappingSchema):
     transaction_extensions = ExtensionsSchema()
 
 # signed transaction
+
+
 class SignedTransactionSchema(colander.MappingSchema):
     compression = StringSchema
     transaction = TransactionSchema()
     signatures = SignaturesSchema()
 
 # final transaction
+
+
 class PushTransactionSchema(colander.MappingSchema):
     transaction_id = StringSchema()
     broadcast = BooleanSchema()
     transaction = SignedTransactionSchema()
-    
+
+
 class TransactionsSchema(colander.SequenceSchema):
     transactions = TransactionSchema()
-    
+
 #############################
 # get info
 #############################
+
 
 class ChainInfoSchema(colander.MappingSchema):
     server_version = StringSchema()
@@ -185,7 +257,7 @@ class ChainInfoSchema(colander.MappingSchema):
     head_block_num = IntSchema()
     last_irreversible_block_num = IntSchema()
     last_irreversible_block_id = StringSchema()
-    head_block_id  = StringSchema()
+    head_block_id = StringSchema()
     head_block_time = TimeSchema()
     head_block_producer = StringSchema()
     virtual_block_cpu_limit = IntSchema()
@@ -197,17 +269,21 @@ class ChainInfoSchema(colander.MappingSchema):
 # get block
 #############################
 
+
 class ProducerSchema(colander.SchemaNode):
     schema_type = colander.String
     missing = 'null'
     default = 'null'
     required = False
 
+
 class HeaderExtsSchema(colander.SequenceSchema):
     header_extensions = ExtensionsSchema()
 
+
 class BlockExtsSchema(colander.SequenceSchema):
     block_extensions = ExtensionsSchema()
+
 
 class BlockInfoSchema(colander.MappingSchema):
     timestamp = TimeSchema()
@@ -231,56 +307,70 @@ class BlockInfoSchema(colander.MappingSchema):
 # abi
 #############################
 
+
 class AbiTypeSchema(colander.MappingSchema):
     new_type_name = StringSchema()
     type = StringSchema()
+
 
 class AbiTypesSchema(colander.SequenceSchema):
     default = []
     missing = []
     types = AbiTypeSchema()
 
+
 class AbiStructFieldSchema(colander.MappingSchema):
     name = StringSchema()
     type = StringSchema()
+
 
 class AbiStructFieldsSchema(colander.SequenceSchema):
     default = []
     missing = []
     fields = AbiStructFieldSchema()
 
+
 class AbiStructBaseSchema(StringSchema):
     default = ""
     missing = ""
+
 
 class AbiStructSchema(colander.MappingSchema):
     name = StringSchema()
     base = AbiStructBaseSchema()
     fields = AbiStructFieldsSchema()
 
+
 class AbiStructsSchema(colander.SequenceSchema):
     structs = AbiStructSchema()
+
 
 class AbiRicardianStrSchema(StringSchema):
     default = ""
     missing = ""
     required = False
 
+
 class AbiActionSchema(colander.MappingSchema):
     name = StringSchema()
     type = StringSchema()
     ricardian_contract = AbiRicardianStrSchema()
 
+
 class AbiActionsSchema(colander.SequenceSchema):
     actions = AbiActionSchema()
 
-class AbiTableKey(StringSchema): pass
+
+class AbiTableKey(StringSchema):
+    pass
     # required = False
+
 
 class AbiTablesKey(colander.SequenceSchema):
     default = []
     missing = []
     keys = AbiTableKey()
+
 
 class AbiTableSchema(colander.MappingSchema):
     name = StringSchema()
@@ -289,14 +379,17 @@ class AbiTableSchema(colander.MappingSchema):
     key_types = AbiTablesKey()
     type = StringSchema()
 
+
 class AbiTablesSchema(colander.SequenceSchema):
     missing = []
     default = []
     tables = AbiTableSchema()
 
+
 class AbiRicardianClauseSchema(colander.MappingSchema):
     id = StringSchema()
     body = StringSchema()
+
 
 class AbiRicardianClausesSchema(colander.SequenceSchema):
     required = False
@@ -305,8 +398,11 @@ class AbiRicardianClausesSchema(colander.SequenceSchema):
     rcs = AbiRicardianClauseSchema()
 
 # placeholder
-class AbiErrorMessageSchema(StringSchema): 
+
+
+class AbiErrorMessageSchema(StringSchema):
     required = False
+
 
 class AbiErrorMessagesSchema(colander.SequenceSchema):
     default = []
@@ -315,8 +411,11 @@ class AbiErrorMessagesSchema(colander.SequenceSchema):
     error_messages = AbiErrorMessageSchema()
 
 # placeholder
-class AbiExtensionSchema(StringSchema): 
+
+
+class AbiExtensionSchema(StringSchema):
     required = False
+
 
 class AbiExtensionsSchema(colander.SequenceSchema):
     default = []
@@ -325,8 +424,11 @@ class AbiExtensionsSchema(colander.SequenceSchema):
     abi_extensions = AbiExtensionSchema()
 
 # placeholder
-class AbiVariantSchema(StringSchema): 
+
+
+class AbiVariantSchema(StringSchema):
     required = False
+
 
 class AbiVariantsSchema(colander.SequenceSchema):
     default = []
@@ -334,10 +436,12 @@ class AbiVariantsSchema(colander.SequenceSchema):
     required = False
     variants = AbiVariantSchema()
 
-class AbiCommentSchema(StringSchema): 
+
+class AbiCommentSchema(StringSchema):
     required = False
     default = ""
     missing = ""
+
 
 class AbiSchema(colander.MappingSchema):
     version = StringSchema()
@@ -354,12 +458,15 @@ class AbiSchema(colander.MappingSchema):
 # eosytest
 #############################
 
+
 def test_param_validator(node, value):
     if not isinstance(value, dict):
         raise colander.Invalid(node, '{} is not a valid dictionary'.format(value))
 
+
 class TestEnvSchema(colander.MappingSchema):
     url = StringSchema()
+
 
 class TestAuthSchema(colander.MappingSchema):
     required = False
@@ -369,8 +476,10 @@ class TestAuthSchema(colander.MappingSchema):
     permission = StringSchema()
     key = StringSchema()
 
+
 class TestResultsSchema(colander.SequenceSchema):
     results = StringSchema()
+
 
 class TestQuerySchema(colander.MappingSchema):
     query = StringSchema()
@@ -380,16 +489,19 @@ class TestQuerySchema(colander.MappingSchema):
     )
     results = TestResultsSchema()
 
+
 class TestQueriesSchema(colander.SequenceSchema):
     required = False
     missing = []
     default = []
     queries = TestQuerySchema()
 
+
 class TestCommentSchema(colander.String):
     required = False
     missing = ""
     default = ""
+
 
 class TestActionSchema(colander.MappingSchema):
     comment = TestCommentSchema()
@@ -403,16 +515,20 @@ class TestActionSchema(colander.MappingSchema):
     exception = BooleanSchema()
     queries = TestQueriesSchema()
 
+
 class TestActionsSchema(colander.SequenceSchema):
     actions = TestActionSchema()
+
 
 class TestSchema(colander.MappingSchema):
     name = StringSchema()
     authorization = TestAuthSchema()
     actions = TestActionsSchema()
 
+
 class TestsSchema(colander.SequenceSchema):
     tests = TestSchema()
+
 
 class TestDocSchema(colander.MappingSchema):
     environment = TestEnvSchema()

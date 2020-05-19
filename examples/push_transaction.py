@@ -1,3 +1,4 @@
+import datetime as dt
 import eospy.cleos
 import eospy.keys
 from eospy.types import Abi, Action
@@ -25,13 +26,12 @@ payload = {
         "permission": "owner",
     }],
 }
-#Converting payload to binary
+# Converting payload to binary
 data = ce.abi_json_to_bin(payload['account'], payload['name'], arguments)
-#Inserting payload binary form as "data" field in original payload
+# Inserting payload binary form as "data" field in original payload
 payload['data'] = data['binargs']
-#final transaction formed
+# final transaction formed
 trx = {"actions": [payload]}
-import datetime as dt
 trx['expiration'] = str(
     (dt.datetime.utcnow() + dt.timedelta(seconds=60)).replace(tzinfo=pytz.UTC))
 # use a string or EOSKey for push_transaction
@@ -64,14 +64,14 @@ with open(abi_file) as rf:
         "quantity": '1.1234 EOS',  # In EOS
         "memo": "EOS to the moon",
     }
-    #Converting payload to binary
+    # Converting payload to binary
     data = ce.abi_json_to_bin(payload['account'], payload['name'], act_params)
     print(data)
     act_data = token_abi.json_to_bin(payload['name'], act_params)
     print(act_data)
-    #Inserting payload binary form as "data" field in original payload
+    # Inserting payload binary form as "data" field in original payload
     payload['data'] = act_data
-    #final transaction formed
+    # final transaction formed
     trx = {"actions": [payload]}
 
     resp = ce.push_transaction(trx, eospy.keys.EOSKey(key), broadcast=True)
