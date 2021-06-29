@@ -4,7 +4,6 @@ from .cleos import Cleos
 from .schema import TestDocSchema
 from .keys import EOSKey
 
-
 class TestEos:
 
     def __init__(self, yaml_location):
