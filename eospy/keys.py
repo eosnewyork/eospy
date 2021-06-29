@@ -3,12 +3,16 @@ import os
 import ecdsa
 import re
 from binascii import hexlify, unhexlify
-from .utils import sha256, ripemd160, str_to_hex, hex_to_int
+from .utils import sha256, ripemd160
 from .signer import Signer
 import hashlib
-import time
 import struct
 import array
+
+def get_curve(key_type) :
+    if key_type == 'R1' :
+        return ecdsa.NIST256p
+    return ecdsa.SECP256k1
 
 def check_wif(key) :
     if isinstance(key, str) :
@@ -24,10 +28,14 @@ class EOSKey(Signer) :
         ''' '''
         if private_str :
             private_key, format, key_type = self._parse_key(private_str)
-            self._sk = ecdsa.SigningKey.from_string(unhexlify(private_key), curve=ecdsa.SECP256k1)
+            self._key_type = key_type
+            self._curve = get_curve(key_type)
+            self._sk = ecdsa.SigningKey.from_string(unhexlify(private_key), curve=self._curve)
         else :
             prng = self._create_entropy()
-            self._sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1, entropy=prng)
+            self._key_type = 'K1'
+            self._curve = get_curve(self._key_type)
+            self._sk = ecdsa.SigningKey.generate(curve=self._curve, entropy=prng)
         self._vk = self._sk.get_verifying_key()
 
     def __str__(self) :
@@ -96,9 +104,9 @@ class EOSKey(Signer) :
         ''' Recover the public key from the sig
             http://www.secg.org/sec1-v2.pdf
         '''
-        curve = ecdsa.SECP256k1.curve
-        G = ecdsa.SECP256k1.generator
-        order = ecdsa.SECP256k1.order
+        curve = self._curve.curve
+        G = self._curve.generator
+        order = self._curve.order
         yp = (i %2)
         r, s = ecdsa.util.sigdecode_string(signature, order)
         x = r + (i // 2 ) * order
@@ -111,10 +119,10 @@ class EOSKey(Signer) :
         # compute Q
         Q = ecdsa.numbertheory.inverse_mod(r, order) * (s * R + (-e % order) * G)
         # verify message
-        if not ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1).verify_digest(signature, digest,
+        if not ecdsa.VerifyingKey.from_public_point(Q, curve=self._curve).verify_digest(signature, digest,
                                                                                             sigdecode=ecdsa.util.sigdecode_string) :
             return None
-        return ecdsa.VerifyingKey.from_public_point(Q, curve=ecdsa.SECP256k1)
+        return ecdsa.VerifyingKey.from_public_point(Q, curve=self._curve)
         
     def _recovery_pubkey_param(self, digest, signature) :
         ''' Use to derive a number that will allow for the easy recovery
@@ -199,11 +207,11 @@ class EOSKey(Signer) :
                 break
                 # if self._is_canonical(sigstr):
                 #     break    
-            cnt +=1 
+            cnt += 1
             if not cnt % 10 :
                 print('Still searching for a signature. Tried {} times.'.format(cnt))        
         # encode
-        return 'SIG_K1_' + self._check_encode(hexlify(sigstr), 'K1').decode()
+        return 'SIG_' + self._key_type + '_' + self._check_encode(hexlify(sigstr), self._key_type).decode()
 
     def verify(self, encoded_sig, digest) :
         ''' '''
@@ -211,7 +219,7 @@ class EOSKey(Signer) :
         encoded_sig = encoded_sig[4:]
         # remove curve prefix
         curvePre = encoded_sig[:3].strip('_')
-        if curvePre != 'K1' :
+        if curvePre != self._key_type :
             raise TypeError('Unsupported curve prefix {}'.format(curvePre))
 
         decoded_sig = self._check_decode(encoded_sig[3:], curvePre)
