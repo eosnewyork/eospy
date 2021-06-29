@@ -4,6 +4,7 @@ from .cleos import Cleos
 from .schema import TestDocSchema
 from .keys import EOSKey
 
+
 class TestEos:
 
     def __init__(self, yaml_location):
@@ -21,26 +22,26 @@ class TestEos:
         validator = TestDocSchema()
         for doc in self._documents:
             validator.deserialize(doc)
-    
+
     def _get_rslt(self, rslt, message, exception):
         return {
             'result': rslt,
             'message': message,
             'exception': exception
-            }
+        }
 
     def run_query(self, ce, query):
         ret_rslt = []
         eval_str = 'ce.{}(**query["parameters"])'.format(query['query'])
-        try :
+        try:
             query_rslt = eval(eval_str)
             print(query_rslt)
             # check all results
-            for rslt in query['results'] :
+            for rslt in query['results']:
                 try:
                     if not eval('query_rslt{}'.format(rslt)):
                         ret_rslt.append(self._get_rslt(False, 'result "{}" failed'.format(rslt), ''))
-                    else: 
+                    else:
                         ret_rslt.append(self._get_rslt(True, 'result "{}" successful'.format(rslt), ''))
                 except Exception as ex:
                     ret_rslt.append(self._get_rslt(False, 'failed', str(ex)))
@@ -50,16 +51,16 @@ class TestEos:
 
     def run_test(self, url, test):
         print('Running: {}'.format(test['name']))
-        
+
         ce = Cleos(url)
         for action in test['actions']:
             rslts = {
-                    'name': test['name'], 
-                    'action': action['action'], 
-                    'contract': action['contract'], 
-                    'results': True, 
-                    'message': 'successful', 
-                    'comment': '' }
+                'name': test['name'],
+                'action': action['action'],
+                'contract': action['contract'],
+                'results': True,
+                'message': 'successful',
+                'comment': ''}
             # add comment
             if 'comment' in action:
                 rslts['comment'] = action['comment']
@@ -76,7 +77,7 @@ class TestEos:
                 }],
             }
             data = ce.abi_json_to_bin(payload['account'], payload['name'], action['parameters'])
-            payload['data']=data['binargs']
+            payload['data'] = data['binargs']
             trx = {'actions': [payload]}
             try:
                 ce.push_transaction(trx, EOSKey(authorization['key']))
@@ -87,7 +88,7 @@ class TestEos:
             # process queries
             query_rslts = []
             if 'queries' in action:
-                for query in action['queries']: 
+                for query in action['queries']:
                     query_rslts += self.run_query(ce, query)
                 # check for failed results
                 failed_queries = list(filter(lambda x: not x['result'], query_rslts))
