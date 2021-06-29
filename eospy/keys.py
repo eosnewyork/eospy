@@ -23,10 +23,11 @@ def check_wif(key) :
             pass
     return False
 
-class EOSKey(Signer) :
-    def __init__(self, private_str='') :
+
+class EOSKey(Signer):
+    def __init__(self, private_str=''):
         ''' '''
-        if private_str :
+        if private_str:
             private_key, format, key_type = self._parse_key(private_str)
             self._key_type = key_type
             self._curve = get_curve(key_type)
@@ -38,69 +39,68 @@ class EOSKey(Signer) :
             self._sk = ecdsa.SigningKey.generate(curve=self._curve, entropy=prng)
         self._vk = self._sk.get_verifying_key()
 
-    def __str__(self) :
+    def __str__(self):
         return self.to_public()
-        
-    def _parse_key(self, private_str) :
+
+    def _parse_key(self, private_str):
         ''' '''
         match = re.search('^PVT_([A-Za-z0-9]+)_([A-Za-z0-9]+)$', private_str)
-        if not match :
-            # legacy WIF - format            
+        if not match:
+            # legacy WIF - format
             version_key = self._check_decode(private_str, 'sha256x2')
             # ensure first 2 chars == 0x80
-            version = int(version_key[0:2],16)
-            if not version == 0x80 :
+            version = int(version_key[0:2], 16)
+            if not version == 0x80:
                 raise ValueError('Expected version 0x80, instead got {0}', version)
             private_key = version_key[2:]
             key_type = 'K1'
             format = 'WIF'
-        else :
+        else:
             key_type, key_string = match.groups()
             private_key = self._check_decode(key_string, key_type)
             format = 'PVT'
         return (private_key, format, key_type)
 
-    def _create_entropy(self) :
+    def _create_entropy(self):
         ''' '''
         ba = bytearray(os.urandom(32))
         seed = sha256(ba)
         return ecdsa.util.PRNG(seed)
 
-    def _check_encode(self, key_buffer, key_type=None) :
+    def _check_encode(self, key_buffer, key_type=None):
         '''    '''
-        if isinstance(key_buffer, bytes) :
+        if isinstance(key_buffer, bytes):
             key_buffer = key_buffer.decode()
         check = key_buffer
-        if key_type == 'sha256x2' :
+        if key_type == 'sha256x2':
             first_sha = sha256(unhexlify(check))
             chksum = sha256(unhexlify(first_sha))[:8]
-        else :
-            if key_type :
-                check += hexlify(bytearray(key_type,'utf-8')).decode()
+        else:
+            if key_type:
+                check += hexlify(bytearray(key_type, 'utf-8')).decode()
             chksum = ripemd160(unhexlify(check))[:8]
-        return base58.b58encode(unhexlify(key_buffer+chksum))
-   
-    def _check_decode(self, key_string, key_type=None) :
+        return base58.b58encode(unhexlify(key_buffer + chksum))
+
+    def _check_decode(self, key_string, key_type=None):
         '''    '''
         buffer = hexlify(base58.b58decode(key_string)).decode()
         chksum = buffer[-8:]
         key = buffer[:-8]
-        if key_type == 'sha256x2' :
+        if key_type == 'sha256x2':
             # legacy
             first_sha = sha256(unhexlify(key))
             newChk = sha256(unhexlify(first_sha))[:8]
-        else :
+        else:
             check = key
-            if key_type :
+            if key_type:
                 check += hexlify(bytearray(key_type, 'utf-8')).decode()
             newChk = ripemd160(unhexlify(check))[:8]
         #print('newChk: '+newChk)
-        if chksum != newChk :
+        if chksum != newChk:
             raise ValueError('checksums do not match: {0} != {1}'.format(chksum, newChk))
         return key
 
-
-    def _recover_key(self, digest, signature, i) :
+    def _recover_key(self, digest, signature, i):
         ''' Recover the public key from the sig
             http://www.secg.org/sec1-v2.pdf
         '''
@@ -109,7 +109,7 @@ class EOSKey(Signer) :
         order = self._curve.order
         yp = (i %2)
         r, s = ecdsa.util.sigdecode_string(signature, order)
-        x = r + (i // 2 ) * order
+        x = r + (i // 2) * order
         alpha = ((x * x * x) + (curve.a() * x) + curve.b()) % curve.p()
         beta = ecdsa.numbertheory.square_root_mod_prime(alpha, curve.p())
         y = beta if (beta - yp) % 2 == 0 else curve.p() - beta
@@ -128,12 +128,12 @@ class EOSKey(Signer) :
         ''' Use to derive a number that will allow for the easy recovery
             of the public key from the signature
         '''
-        for i in range(0,4) :
+        for i in range(0, 4):
             p = self._recover_key(digest, signature, i)
-            if (p.to_string() == self._vk.to_string()) :
+            if (p.to_string() == self._vk.to_string()):
                 return i
 
-    def _compress_pubkey(self) :
+    def _compress_pubkey(self):
         ''' '''
         order = self._sk.curve.generator.order()
         p = self._vk.pubkey.point
@@ -150,12 +150,12 @@ class EOSKey(Signer) :
         t4 = not (sig[33] == 0 and ((sig[34] & 0x80) == 0))
         return t1 and t2 and t3 and t4
 
-    def to_public(self) :
+    def to_public(self):
         ''' '''
         cmp = self._compress_pubkey()
         return 'EOS' + self._check_encode(cmp).decode()
-        
-    def to_wif(self) :
+
+    def to_wif(self):
         ''' '''
         pri_key = '80' + hexlify(self._sk.to_string()).decode()
         return self._check_encode(pri_key, 'sha256x2').decode()
@@ -165,25 +165,25 @@ class EOSKey(Signer) :
         digest = sha256(bytearray(data, encoding))
         return self.sign(digest)
 
-    def sign(self, digest) :
+    def sign(self, digest):
         ''' '''
         cnt = 0
         # convert digest to hex string
         digest = unhexlify(digest)
-        if len(digest) != 32 :
+        if len(digest) != 32:
             raise ValueError("32 byte buffer required")
-        while 1 :
+        while 1:
             # get deterministic k
             if cnt:
                 sha_digest = hashlib.sha256(digest + bytearray(cnt)).digest()
-            else :
+            else:
                 sha_digest = hashlib.sha256(digest).digest()
-            k = ecdsa.rfc6979.generate_k( self._sk.curve.generator.order(),
-                                          self._sk.privkey.secret_multiplier,
-                                          hashlib.sha256,
-                                        #   hashlib.sha256(digest + struct.pack('d', time.time())).digest() # use time to randomize
-                                          sha_digest
-                                          )
+            k = ecdsa.rfc6979.generate_k(self._sk.curve.generator.order(),
+                                         self._sk.privkey.secret_multiplier,
+                                         hashlib.sha256,
+                                         #   hashlib.sha256(digest + struct.pack('d', time.time())).digest() # use time to randomize
+                                         sha_digest
+                                         )
             # sign the message
             sigder = self._sk.sign_digest(digest, sigencode=ecdsa.util.sigencode_der, k=k)
 
@@ -195,7 +195,7 @@ class EOSKey(Signer) :
             # ensure signature is canonical
             lenR = sigder[3]
             lenS = sigder[5 + lenR]
-            
+
             if lenR == 32 and lenS == 32:
                 # derive recover parameter
                 i = self._recovery_pubkey_param(digest, sig)
@@ -213,7 +213,7 @@ class EOSKey(Signer) :
         # encode
         return 'SIG_' + self._key_type + '_' + self._check_encode(hexlify(sigstr), self._key_type).decode()
 
-    def verify(self, encoded_sig, digest) :
+    def verify(self, encoded_sig, digest):
         ''' '''
         # remove SIG_ prefix
         encoded_sig = encoded_sig[4:]
@@ -229,11 +229,10 @@ class EOSKey(Signer) :
         sig = decoded_sig[2:]
         # verify sig by recovering the key and comparing to self._vk
         # p = self._recover_key(unhexlify(digest), unhexlify(sig), recover_param)
-        #return self._vk.verify_digest(unhexlify(sig), unhexlify(digest), sigdecode=ecdsa.util.sigdecode_string)
+        # return self._vk.verify_digest(unhexlify(sig), unhexlify(digest), sigdecode=ecdsa.util.sigdecode_string)
         # return p.to_string() == self._vk.to_string()
         try:
             self._vk.verify_digest(unhexlify(sig), unhexlify(digest), sigdecode=ecdsa.util.sigdecode_string)
         except ecdsa.keys.BadSignatureError:
             return False
         return True
-        
