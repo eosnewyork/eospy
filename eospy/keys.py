@@ -150,10 +150,15 @@ class EOSKey(Signer):
         t4 = not (sig[33] == 0 and ((sig[34] & 0x80) == 0))
         return t1 and t2 and t3 and t4
 
-    def to_public(self):
+    def to_public_legacy(self):
         ''' '''
         cmp = self._compress_pubkey()
         return 'EOS' + self._check_encode(cmp).decode()
+
+    def to_public(self):
+        ''' '''
+        cmp = self._compress_pubkey()
+        return 'PUB_' + self._key_type + '_' + self._check_encode(cmp, self._key_type).decode()
 
     def to_wif(self):
         ''' '''
