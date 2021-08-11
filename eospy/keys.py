@@ -143,7 +143,6 @@ class EOSKey(Signer):
         return compressed
 
     def _is_canonical(self, sig):
-        print("sig: " + str(sig))
         t1 = (sig[1] & 0x80) == 0
         t2 = not (sig[1] == 0 and ((sig[2] & 0x80) == 0))
         t3 = (sig[33] & 0x80) == 0
