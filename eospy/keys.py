@@ -185,7 +185,6 @@ class EOSKey(Signer):
             k = ecdsa.rfc6979.generate_k(self._sk.curve.generator.order(),
                                          self._sk.privkey.secret_multiplier,
                                          hashlib.sha256,
-                                         #   hashlib.sha256(digest + struct.pack('d', time.time())).digest() # use time to randomize
                                          sha_digest
                                          )
             # sign the message
@@ -232,7 +231,6 @@ class EOSKey(Signer):
         # use sig
         sig = decoded_sig[2:]
         # verify sig by recovering the key and comparing to self._vk
-        # p = self._recover_key(unhexlify(digest), unhexlify(sig), recover_param)
         # return self._vk.verify_digest(unhexlify(sig), unhexlify(digest), sigdecode=ecdsa.util.sigdecode_string)
         # return p.to_string() == self._vk.to_string()
         try:
